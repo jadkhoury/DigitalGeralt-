@@ -1,0 +1,33 @@
+#pragma once
+
+#include <Eigen/Core>
+#include <OpenGP/GL/glfw.h>
+#include <OpenGP/GL/SceneObject.h>
+#include <OpenGP/GL/GlfwWindow.h>
+#include <stdio.h> //< to read targa file
+
+//=============================================================================
+namespace OpenGP{
+//=============================================================================
+
+template <class PixelType>
+using EigenImage = Eigen::Matrix< PixelType, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor >;
+
+template <class PixelType>
+class ImageRenderer : public SceneObject{
+protected:
+    EigenImage<PixelType>& _image;
+    VertexArrayObject _vao;  
+    ArrayBuffer<Vec3> _buffer_vpos; ///< per-vertex position
+    ArrayBuffer<Vec2> _buffer_vtex; ///< per-vertex uv coords
+    GLuint _tex; ///< Texture ID
+
+public:
+    ImageRenderer(EigenImage<PixelType>& image) : _image(image){}
+    ~ImageRenderer(){
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glDeleteTextures(1, &_tex);
+    }
+
+public: 
+    ///--- Generic vertex shader

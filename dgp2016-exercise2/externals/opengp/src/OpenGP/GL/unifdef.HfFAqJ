@@ -1,0 +1,37 @@
+#pragma once
+#include <OpenGP/types.h>
+#include <OpenGP/headeronly.h>
+#include <OpenGP/GL/SceneObject.h>
+
+//=============================================================================
+namespace OpenGP {
+//=============================================================================
+
+class SegmentsRenderer : public SceneObject{
+public:
+    typedef std::vector<std::pair<Vec3, Vec3>> Segments;
+protected:
+    VertexArrayObject _vao;           ///< OpenGL object storing data/attributes
+    MatMxN _data;                     ///< reference to data to be rendered  
+    ArrayBuffer<Vec3> _buffer_vpos;   ///< per-vertex position
+    ArrayBuffer<Vec3> _buffer_vcolor; ///< per-vertex color (optional)
+
+/// @{ constructors
+public:
+    SegmentsRenderer(){}
+    SegmentsRenderer(const Segments& segments){ load(segments); }
+    SegmentsRenderer(const MatMxN& P1, const MatMxN& P2){ load(P1,P2); }
+
+    void init_data (const Segments& segments);
+    void set_colors(const MatMxN& M);
+protected:
+    HEADERONLY_INLINE void load(const MatMxN& P1, const MatMxN& P2);
+    HEADERONLY_INLINE void load(const Segments& segments);
+/// @} 
+
+public:        
+    HEADERONLY_INLINE void init();
+    HEADERONLY_INLINE void display();
+    HEADERONLY_INLINE Box3 bounding_box();
+
+protected:

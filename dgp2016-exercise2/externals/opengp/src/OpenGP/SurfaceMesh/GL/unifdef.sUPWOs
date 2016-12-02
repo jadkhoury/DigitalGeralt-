@@ -1,0 +1,24 @@
+#pragma once
+#include <vector>
+#include <OpenGP/SurfaceMesh/SurfaceMesh.h>
+#include <OpenGP/GL/glfw.h>
+#include <OpenGP/GL/check_error_gl.h>
+#include <OpenGP/MLogger.h>
+
+#include <OpenGP/GL/Buffer.h>
+#include <OpenGP/GL/SceneGraph.h>
+#include <OpenGP/SurfaceMesh/bounding_box.h>
+
+//=============================================================================
+namespace OpenGP {
+//=============================================================================
+
+class SurfaceMeshRenderFlat : public SceneObject{
+private:
+    SurfaceMesh& mesh;
+    VertexArrayObject vao;    
+    ArrayBuffer<Vec3> vertexbuffer;
+    ArrayBuffer<Vec3> normalbuffer;
+    ArrayBuffer<Vec3> barycbuffer;
+
+private:

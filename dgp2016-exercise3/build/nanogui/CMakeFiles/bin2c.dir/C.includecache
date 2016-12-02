@@ -1,0 +1,18 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/jad/Prog/DGP_16/dgp2016-exercise3/externals/nanogui/resources/bin2c.c
+stdlib.h
+-
+stdio.h
+-
+string.h
+-
+ctype.h
+-
+

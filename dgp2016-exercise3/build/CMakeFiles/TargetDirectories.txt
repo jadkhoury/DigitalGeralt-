@@ -1,0 +1,7 @@
+/Users/jad/Prog/DGP_16/dgp2016-exercise3/build/surfaces/CMakeFiles/surfaces.dir
+/Users/jad/Prog/DGP_16/dgp2016-exercise3/build/nanogui/ext_build/glfw/src/CMakeFiles/glfw_objects.dir
+/Users/jad/Prog/DGP_16/dgp2016-exercise3/build/nanogui/ext_build/glfw/src/CMakeFiles/glfw.dir
+/Users/jad/Prog/DGP_16/dgp2016-exercise3/build/externals/surface_mesh/CMakeFiles/surface_mesh.dir
+/Users/jad/Prog/DGP_16/dgp2016-exercise3/build/nanogui/CMakeFiles/nanogui.dir
+/Users/jad/Prog/DGP_16/dgp2016-exercise3/build/CMakeFiles/DGP_DATA.dir
+/Users/jad/Prog/DGP_16/dgp2016-exercise3/build/nanogui/CMakeFiles/bin2c.dir
