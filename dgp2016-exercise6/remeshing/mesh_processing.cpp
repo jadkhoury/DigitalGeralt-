@@ -40,10 +40,10 @@ void MeshProcessing::remesh(const REMESHING_TYPE &remeshing_type,
 
     // main remeshing loop
     for (int i = 0; i < 5; ++i) {
-        //split_long_edges();
-        //collapse_short_edges();
+        split_long_edges();
+        collapse_short_edges();
         equalize_valences();
-        // tangential_relaxation ();
+        //tangential_relaxation ();
     }
 }
 
@@ -64,30 +64,28 @@ void MeshProcessing::calc_target_length(const REMESHING_TYPE &remeshing_type) {
 
     // we caluclate length summing up over all edges
     length = 0.;
-
-    Mesh::Edge_iterator e_it, e_end, e_begin;
-    e_end = mesh_.edges_end();
-    e_begin = mesh_.edges_begin();
-    for (e_it = e_begin; e_it != e_end; ++e_it) {
-        length = length + mesh_.edge_length(*e_it);
+    for (auto e: mesh_.edges()) {
+        length = length + mesh_.edge_length(e);
     }
 
     //We comppute the mean and define the max and min length in function of the mean
     mean_length = length / mesh_.n_edges();
-    float max_length = 1.5 * mean_length;
-    float min_length = 0.5 * mean_length;
+    float max_length = 3.0 * mean_length;
+    float min_length = 0.3 * mean_length;
 
 
     if (remeshing_type == AVERAGE) {
         //we simply set the target length to be the mean
-        for (v_it = mesh_.vertices_begin(); v_it != v_end; ++v_it) {
-            target_length[*v_it] = mean_length;
+        for (auto v: mesh_.vertices()) {
+            target_length[v] = mean_length;
         }
 
+#ifdef FACTOR
         float factor = 1.0;
         for (auto v:mesh_.vertices()) {
             target_length[v] *= factor;
         }
+#endif
     } else if (remeshing_type == CURV) {
         // get max min mean curvature
         v_begin = mesh_.vertices_begin();
@@ -179,11 +177,13 @@ void MeshProcessing::split_long_edges() {
     double target_L;
     double L;
     int n_iter = 100;
+    int ctr = 0;
     Mesh::Vertex_property <Point> normals = mesh_.vertex_property<Point>("v:normal");
     Mesh::Vertex_property <Scalar> target_length = mesh_.vertex_property<Scalar>("v:length", 0);
 
     for (finished = false, i = 0; !finished && i < n_iter; ++i) {
         finished = true;
+        ctr = 0;
         // iteration sur les edges
         // No matter with boundaries here
         for (auto e: mesh_.edges()) {
@@ -201,10 +201,12 @@ void MeshProcessing::split_long_edges() {
                 normals[v] = normalize(normals[v0] + normals[v1]);
                 target_length[v] = target_L;
                 mesh_.split(e, v);
+                ctr++;
             }
         }
-
+        cout << "we split " << ctr << " edges" << endl;
     }
+
     mesh_.garbage_collection();
     mesh_.update_face_normals();
     mesh_.update_vertex_normals();
@@ -218,12 +220,13 @@ void MeshProcessing::collapse_short_edges() {
     double L;
     bool v0_bound, v1_bound;
     bool finished;
+    int ctr;
 
     Mesh::Vertex_property <Scalar> target_length = mesh_.vertex_property<Scalar>("v:length", 0);
 
     for (finished = false, i = 0; !finished && i < 100; ++i) {
         finished = true;
-
+        ctr = 0;
         for (auto e: mesh_.edges()) {
             if (!mesh_.is_deleted(e)){
                 h1 = mesh_.halfedge(e, 0);
@@ -245,18 +248,22 @@ void MeshProcessing::collapse_short_edges() {
                             //We collapse the halfedge with the to_vertex of higher valence
                             if (val0 >= val1) {
                                 mesh_.collapse(h0);
+                                ctr++;
                                 finished = false;
                             } else {
                                 mesh_.collapse(h1);
+                                ctr++;
                                 finished = false;
                             }
-                        //If endpoint of h1 is boundary
+                            //If endpoint of h1 is boundary
                         } else if (!v0_bound && v1_bound) {
                             mesh_.collapse(h1);
+                            ctr++;
                             finished = false;
-                        //If endpoint of h0 is boundary
+                            //If endpoint of h0 is boundary
                         } else if (v0_bound && !v1_bound) {
                             mesh_.collapse(h0);
+                            ctr++;
                             finished = false;
                         }
                     }
@@ -266,6 +273,7 @@ void MeshProcessing::collapse_short_edges() {
                     else if (mesh_.is_collapse_ok(h0) && !mesh_.is_collapse_ok(h1) && !v1_bound) {
                         finished = false;
                         mesh_.collapse(h0);
+                        ctr++;
                     }
 
                     // If we can collapse only h1
@@ -273,13 +281,16 @@ void MeshProcessing::collapse_short_edges() {
                     else if (!mesh_.is_collapse_ok(h0) && mesh_.is_collapse_ok(h1) && !v0_bound) {
                         finished = false;
                         mesh_.collapse(h1);
+                        ctr++;
                     }
                 }
             }
 
         }
-        mesh_.garbage_collection();
+        cout << "we collapse " << ctr << " edges" << endl;
+
     }
+    mesh_.garbage_collection();
     mesh_.update_face_normals();
     mesh_.update_vertex_normals();
     if (i == 100) std::cerr << "collapse break\n";
@@ -338,39 +349,53 @@ void MeshProcessing::equalize_valences() {
                     mesh_.flip(e);
                     counter++;
                     finished = false;
-                    mesh_.garbage_collection();
                 }
             }
         }
+        cout << "we equalize " << counter << " vertices" << endl;
     }
-
+    mesh_.garbage_collection();
     mesh_.update_face_normals();
     mesh_.update_vertex_normals();
     if (i == 100) std::cerr << "flip break\n";
-    cout << "We flipped " << counter << " edges" << endl;
 }
 
 void MeshProcessing::tangential_relaxation() {
-    Mesh::Vertex_iterator v_it, v_end(mesh_.vertices_end());
-    Mesh::Vertex_around_vertex_circulator vv_c, vv_end;
-    int valence;
+    Mesh::Vertex_around_vertex_circulator vc, vc_end;
     Point u, n;
-    Point laplace;
-
+    Point Lu , sum;
+    int neighbors_counter;
+    float dist;
     Mesh::Vertex_property <Point> normals = mesh_.vertex_property<Point>("v:normal");
     Mesh::Vertex_property <Point> update = mesh_.vertex_property<Point>("v:update");
 
-
     // smooth
     for (int iters = 0; iters < 10; ++iters) {
-        for (v_it = mesh_.vertices_begin(); v_it != v_end; ++v_it) {
-            if (!mesh_.is_boundary(*v_it)) {
+        for (auto v: mesh_.vertices()) {
+            if (!mesh_.is_boundary(v)) {
+                //Computing uniform laplacian vector
+                neighbors_counter = 0;
+                sum = Point(0.0, 0.0, 0.0);
+                vc = mesh_.vertices(v);
+                vc_end = vc;
+                do {
+                    neighbors_counter++;
+                    sum += (mesh_.position(*vc) - mesh_.position(v));
+                } while (++vc != vc_end);
+                Lu = sum / float(neighbors_counter);
+                //Computing projection of Lu onto normal plane
+                n = normals[v];
+                dist = dot(n, Lu);
+                u = Lu - dist * n;
+                update[v] = u;
             }
         }
+        mesh_.update_vertex_normals();
 
-        for (v_it = mesh_.vertices_begin(); v_it != v_end; ++v_it)
-            if (!mesh_.is_boundary(*v_it))
-                mesh_.position(*v_it) += update[*v_it];
+        for (auto v: mesh_.vertices())
+            if (!mesh_.is_boundary(v))
+                mesh_.position(v) += update[v];
+        cout << "finished tangential relaxation" << endl;
     }
 }
 // ========================================================================
@@ -399,6 +424,7 @@ void MeshProcessing::calc_uniform_mean_curvature() {
         current_v = *v_it;
         vc = mesh_.vertices(current_v);
         vc_end = vc;
+        //iterating over all neighbours
         do {
             neighbors_counter++;
             approx = approx + mesh_.position(*vc) - mesh_.position(current_v);
