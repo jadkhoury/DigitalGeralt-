@@ -40,8 +40,8 @@ void MeshProcessing::remesh(const REMESHING_TYPE &remeshing_type,
 
     // main remeshing loop
     for (int i = 0; i < 5; ++i) {
-        split_long_edges();
-        collapse_short_edges();
+        //split_long_edges();
+        //collapse_short_edges();
         equalize_valences();
         // tangential_relaxation ();
     }
@@ -172,38 +172,38 @@ void MeshProcessing::calc_target_length(const REMESHING_TYPE &remeshing_type) {
 }
 
 void MeshProcessing::split_long_edges() {
-    Mesh::Edge_iterator e_it, e_end(mesh_.edges_end());
     Mesh::Vertex v0, v1, v;
     Mesh::Halfedge h0, h1;
     bool finished;
     int i;
     double target_L;
     double L;
+    int n_iter = 100;
     Mesh::Vertex_property <Point> normals = mesh_.vertex_property<Point>("v:normal");
     Mesh::Vertex_property <Scalar> target_length = mesh_.vertex_property<Scalar>("v:length", 0);
 
-    for (finished = false, i = 0; !finished && i < 100; ++i) {
+    for (finished = false, i = 0; !finished && i < n_iter; ++i) {
         finished = true;
         // iteration sur les edges
         // No matter with boundaries here
-        for (e_it = mesh_.edges_begin(); e_it != e_end; ++e_it) {
-            h0 = mesh_.halfedge(*e_it, 0);
-            h1 = mesh_.halfedge(*e_it, 1);
+        for (auto e: mesh_.edges()) {
+            h0 = mesh_.halfedge(e, 0);
+            h1 = mesh_.halfedge(e, 1);
             v0 = mesh_.to_vertex(h0);
             v1 = mesh_.to_vertex(h1);
             target_L = (target_length[v0] + target_length[v1]) / 2.0;
             L = norm(mesh_.position(v1) - mesh_.position(v0));
-
-            if (L > (4. / 3.) * target_L) {
+            if (L > (4.0 / 3.0) * target_L) {
                 finished = false;
                 v = mesh_.add_vertex((mesh_.position(v0) + mesh_.position(v1)) / 2.0);
                 // comment calculer la normale ????
                 // Pour l'instant moyenne des 2 normales
                 normals[v] = normalize(normals[v0] + normals[v1]);
                 target_length[v] = target_L;
-                mesh_.split(*e_it, v);
+                mesh_.split(e, v);
             }
         }
+
     }
     mesh_.garbage_collection();
     mesh_.update_face_normals();
@@ -211,41 +211,38 @@ void MeshProcessing::split_long_edges() {
 }
 
 void MeshProcessing::collapse_short_edges() {
-    Mesh::Edge_iterator e_it, e_end(mesh_.edges_end());
     Mesh::Vertex v0, v1;
     Mesh::Halfedge h0, h1;
-    bool finished, b0, b1;
     int i, val0, val1;
-    bool hcol01, hcol10;
     double target_L;
     double L;
+    bool v0_bound, v1_bound;
+    bool finished;
 
     Mesh::Vertex_property <Scalar> target_length = mesh_.vertex_property<Scalar>("v:length", 0);
 
     for (finished = false, i = 0; !finished && i < 100; ++i) {
         finished = true;
 
-        for (e_it = mesh_.edges_begin(); e_it != e_end; ++e_it) {
-            if (!mesh_.is_deleted(*e_it)){
-                h1 = mesh_.halfedge(*e_it, 0);
-                h0 = mesh_.halfedge(*e_it, 1);
+        for (auto e: mesh_.edges()) {
+            if (!mesh_.is_deleted(e)){
+                h1 = mesh_.halfedge(e, 0);
+                h0 = mesh_.halfedge(e, 1);
                 v0 = mesh_.to_vertex(h0);
                 v1 = mesh_.to_vertex(h1);
-
-                // Are we on boundaries ?
-                bool v0_bound = mesh_.is_boundary(v0);
-                bool v1_bound = mesh_.is_boundary(v1);
-
-
                 target_L = (target_length[v0] + target_length[v1]) / 2;
                 L = norm(mesh_.position(v1) - mesh_.position(v0));
-
-                if (L < (4. / 5.) * target_L) {
+                if (L < (4.0 / 5.0) * target_L) {
+                    // Are we on boundaries ?
+                    v0_bound = mesh_.is_boundary(v0);
+                    v1_bound = mesh_.is_boundary(v1);
                     // If we can collapse both
                     if (mesh_.is_collapse_ok(h0) && mesh_.is_collapse_ok(h1)) {
+                        //If none of the endpoint is boundary
                         if (!v0_bound && !v1_bound) {
                             val0 = mesh_.valence(v0);
                             val1 = mesh_.valence(v1);
+                            //We collapse the halfedge with the to_vertex of higher valence
                             if (val0 >= val1) {
                                 mesh_.collapse(h0);
                                 finished = false;
@@ -253,9 +250,11 @@ void MeshProcessing::collapse_short_edges() {
                                 mesh_.collapse(h1);
                                 finished = false;
                             }
+                        //If endpoint of h1 is boundary
                         } else if (!v0_bound && v1_bound) {
                             mesh_.collapse(h1);
                             finished = false;
+                        //If endpoint of h0 is boundary
                         } else if (v0_bound && !v1_bound) {
                             mesh_.collapse(h0);
                             finished = false;
@@ -279,34 +278,34 @@ void MeshProcessing::collapse_short_edges() {
             }
 
         }
+        mesh_.garbage_collection();
     }
-
-    mesh_.garbage_collection();
     mesh_.update_face_normals();
     mesh_.update_vertex_normals();
-
     if (i == 100) std::cerr << "collapse break\n";
 }
 
+float sq(float n){
+    return n*n;
+}
+
 void MeshProcessing::equalize_valences() {
-    Mesh::Edge_iterator e_it, e_end(mesh_.edges_end());
     Mesh::Vertex v0, v1, v2, v3;
-    Mesh::Halfedge h, h0, h1, h2, h3;
+    Mesh::Halfedge h0, h1, h2, h3;
     int val0, val1, val2, val3;
     int val_opt0, val_opt1, val_opt2, val_opt3;
     int ve0, ve1, ve2, ve3, ve_before, ve_after;
     bool finished;
     int i;
+    int counter = 0;
 
-
-    // flip all edges
     for (finished = false, i = 0; !finished && i < 100; ++i) {
         finished = true;
-        for (e_it = mesh_.edges_begin(); e_it != e_end; ++e_it) {
-            if (!mesh_.is_boundary(*e_it)) {
+        for (auto e: mesh_.edges()) {
+            if (!mesh_.is_boundary(e) && mesh_.is_flip_ok(e) && !mesh_.is_deleted(e)) {
                 // we access to the 4 vertices by halfedges
-                h0 = mesh_.halfedge(*e_it, 0);
-                h1 = mesh_.halfedge(*e_it, 1);
+                h0 = mesh_.halfedge(e, 0);
+                h1 = mesh_.halfedge(e, 1);
                 v0 = mesh_.to_vertex(h0);
                 v1 = mesh_.to_vertex(h1);
                 h2 = mesh_.next_halfedge(h0);
@@ -320,58 +319,35 @@ void MeshProcessing::equalize_valences() {
                 val2 = mesh_.valence(v2);
                 val3 = mesh_.valence(v3);
 
-                // we compute optimal valences for 4 verices
-                // for v0
-                if (mesh_.is_boundary(v0)) {
-                    val_opt0 = 4;
-                } else {
-                    val_opt0 = 6;
-                }
-
-                // for v1
-                if (mesh_.is_boundary(v1)) {
-                    val_opt1 = 4;
-                } else {
-                    val_opt1 = 6;
-                }
-
-                // for v2
-                if (mesh_.is_boundary(v2)) {
-                    val_opt2 = 4;
-                } else {
-                    val_opt2 = 6;
-                }
-
-                // for v3
-                if (mesh_.is_boundary(v3)) {
-                    val_opt3 = 4;
-                } else {
-                    val_opt3 = 6;
-                }
+                //Compute the optimal valences
+                val_opt0 = (mesh_.is_boundary(v0)) ? 4 : 6;
+                val_opt1 = (mesh_.is_boundary(v1)) ? 4 : 6;
+                val_opt2 = (mesh_.is_boundary(v2)) ? 4 : 6;
+                val_opt3 = (mesh_.is_boundary(v3)) ? 4 : 6;
 
                 // we compute valence deviation for 4 vertices
-                ve0 = abs(val0 - val_opt0);
-                ve1 = abs(val0 - val_opt1);
-                ve2 = abs(val0 - val_opt2);
-                ve3 = abs(val0 - val_opt3);
+                ve0 = val0 - val_opt0;
+                ve1 = val1 - val_opt1;
+                ve2 = val2 - val_opt2;
+                ve3 = val3 - val_opt3;
 
                 // sum of square of deviations for 2 edges
-                ve_before = ve0 * ve0 + ve1 * ve1;
-                ve_after = ve2 * ve2 + ve3 * ve3;
-
-
-                if (ve_after < ve_before && mesh_.is_flip_ok(*e_it)) {
-                    mesh_.flip(*e_it);
+                ve_before = sq(ve0) + sq(ve1) + sq(ve2) + sq(ve3);
+                ve_after  = sq(ve0-1) + sq(ve1-1) + sq(ve2+1) + sq(ve3+1);
+                if (ve_after < ve_before) {
+                    mesh_.flip(e);
+                    counter++;
                     finished = false;
+                    mesh_.garbage_collection();
                 }
             }
         }
     }
 
-    mesh_.garbage_collection();
     mesh_.update_face_normals();
     mesh_.update_vertex_normals();
     if (i == 100) std::cerr << "flip break\n";
+    cout << "We flipped " << counter << " edges" << endl;
 }
 
 void MeshProcessing::tangential_relaxation() {
