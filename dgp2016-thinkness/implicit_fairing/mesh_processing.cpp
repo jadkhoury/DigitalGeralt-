@@ -28,10 +28,21 @@ MeshProcessing::MeshProcessing(const string& filename) {
 }
 
 // ============================================================================
-// EXERCISE 5.1
+// THICKNESS
 // ============================================================================
 
     void MeshProcessing::give_thickness() {
+        /*
+         * The goal of this fuction is to transform a surface into a solid.
+         * The solid should have the same shape as surface but with a none infinitely small thickness,
+         * so we could print the shape.
+         *
+         * Algo:
+         * 1) iterate over all vertices and create a new vertex slid down the normal
+         * 2) iterate over all faces and create the same faces for the associated vertex
+         *
+         */
+
 
         const float thickness = 2;
 
@@ -39,25 +50,17 @@ MeshProcessing::MeshProcessing(const string& filename) {
                 mesh_.vertex_property<Point>("v:normal");
 
 
-        // Add propreties to generate tickness
+        // Add proprety to generate thickness
 
         // why in not reconize the type ???
         Mesh::Vertex_property <surface_mesh::Surface_mesh::Vertex> associated_vertex =
-                mesh_.add_vertex_property<surface_mesh::Surface_mesh::Vertex>("v:associated_vertex");
-
-        // determine if this vertex was generate to give a thickness to the surface
-        Mesh::Vertex_property<bool> is_thickness =
-                mesh_.add_vertex_property<bool>("v:is_thickness");
-
-
-
-
+                mesh_.vertex_property<surface_mesh::Surface_mesh::Vertex>("v:associated_vertex");
 
 
 
         /*
          * Iterate over all vertex and create a new vertex in the oposite direction of the normal
-         * We call this new vertex the assiociated vertex.
+         * We call this new vertex the associated vertex and we store a link to this
          */
         Mesh::Vertex_iterator v_it, v_begin, v_end;
 
@@ -74,14 +77,13 @@ MeshProcessing::MeshProcessing(const string& filename) {
             assiociated_v = mesh_.add_vertex(p - ( thickness * normal) );
             associated_vertex[*v_it] = assiociated_v;
 
-
         }
 
 
 
 
 
-        // the new vertex should not have faces
+        // the new vertex should not have faces, so we can iterate over all faces
 
         Mesh::Face_iterator f_it, f_begin, f_end;
         f_begin = mesh_.faces_begin();
@@ -93,21 +95,17 @@ MeshProcessing::MeshProcessing(const string& filename) {
         for (f_it = f_begin; f_it != f_end; ++f_it) {
 
             Mesh::Face f = *f_it;
-
             vc = mesh_.vertices(f);
             vc_end = vc;
 
-
             Mesh::Vertex associated_vertices[3];
 
-            int associated_v;
 
             int i = 0;
             do {
 
                 associated_vertices[i] = associated_vertex[*vc];
                 ++i;
-
 
             } while (++vc != vc_end);
 
@@ -123,6 +121,8 @@ MeshProcessing::MeshProcessing(const string& filename) {
 
     }
 
+
+// ============================================================================
 
     void print(std::string s) {
         std::cout << s << std::endl;

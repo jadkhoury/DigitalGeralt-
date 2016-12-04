@@ -332,103 +332,8 @@ Viewer::Viewer() : nanogui::Screen(Eigen::Vector2i(1024, 768), "DGP Viewer") {
         this->popupCurvature->setPushed(false);
     });
 
-    popupCurvature = new PopupButton(window_, "Curvature");
-    popup = popupCurvature->popup();
-    popupCurvature->setCallback([this] () {
-        this->color_mode = CURVATURE;
-    });
-    popup->setLayout(new GroupLayout());
-    new Label(popup, "Curvature Type", "sans-bold");
-    b = new Button(popup, "Uniform Laplacian");
-    b->setFlags(Button::RadioButton);
-    b->setPushed(true);
-    b->setCallback([this]() {
-        this->curvature_type = UNIMEAN;
-    });
-    b = new Button(popup, "Laplace-Beltrami");
-    b->setFlags(Button::RadioButton);
-    b->setCallback([this]() {
-        this->curvature_type = LAPLACEBELTRAMI;
-    });
-    b = new Button(popup, "Gaussian");
-    b->setFlags(Button::RadioButton);
-    b->setCallback([this]() {
-        this->curvature_type = GAUSS;
-    });
+    new Label(window_, "New Features", "sans-bold");
 
-    new Label(window_, "Smoothing", "sans-bold");
-    popupBtn = new PopupButton(window_, "Smooth");
-    popup = popupBtn->popup();
-    popup->setLayout(new GroupLayout());
-    b = new Button(popup, "Uniform Laplacian");
-    b->setCallback([this]() {
-//        mesh_->uniform_smooth(10);
-        mesh_->compute_mesh_properties();
-        this->refresh_mesh();
-    });
-    b = new Button(popup, "Laplace-Beltrami");
-    b->setCallback([this]() {
-//        mesh_->smooth(10);
-        this->refresh_mesh();
-    });
-
-    b = new Button(popup, "Implicit Smoothing");
-    b->setCallback([this]() {
-//        mesh_->implicit_smoothing();
-        mesh_->compute_mesh_properties();
-        this->refresh_mesh();
-    });
-
-    popupBtn = new PopupButton(window_, "Enhancement");
-    popup = popupBtn->popup();
-    popup->setLayout(new GroupLayout());
-
-    Widget* panel = new Widget(popup);
-    panel->setLayout(new GroupLayout());
-
-
-    b = new Button(panel, "Uniform Laplacian");
-    b->setCallback([this]() {
-//        mesh_->uniform_laplacian_enhance_feature(this->iterationTextBox->value(),
-  //                                               this->coefTextBox->value());
-        mesh_->compute_mesh_properties();
-        this->refresh_mesh();
-    });
-    b = new Button(panel, "Laplace-Beltrami");
-    b->setCallback([this]() {
-//        mesh_->laplace_beltrami_enhance_feature(this->iterationTextBox->value(),
-    //                                            this->coefTextBox->value());
-        mesh_->compute_mesh_properties();
-        this->refresh_mesh();
-    });
-
-    panel = new Widget(popup);
-    GridLayout *layout = new GridLayout(Orientation::Horizontal, 2,
-                                        Alignment::Middle, 15, 5);
-    layout->setColAlignment({ Alignment::Maximum, Alignment::Fill });
-    layout->setSpacing(0, 10);
-    panel->setLayout(layout);
-    new Label(panel, "Number of iterations:", "sans-bold");
-    iterationTextBox = new IntBox<int>(panel, 10);
-    iterationTextBox->setEditable(true);
-    iterationTextBox->setFixedSize(Vector2i(50, 20));
-    iterationTextBox->setDefaultValue("10");
-    iterationTextBox->setFontSize(16);
-    iterationTextBox->setFormat("[-]?[0-9]*\\.?[0-9]+");
-    new Label(panel, "Coefficient:", "sans-bold");
-    coefTextBox = new FloatBox<float>(panel, 2.0);
-    coefTextBox->setEditable(true);
-    coefTextBox->setFixedSize(Vector2i(50, 20));
-    coefTextBox->setDefaultValue("2.0");
-    coefTextBox->setFontSize(16);
-    coefTextBox->setFormat("[-]?[0-9]*\\.?[0-9]+");
-
-    b = new Button(window_, "Minimal Surface");
-    b->setCallback([this]() {
-//        mesh_->minimal_surface();
-        mesh_->compute_mesh_properties();
-        this->refresh_mesh();
-    });
 
     b = new Button(window_, "Thickness");
     b->setCallback([this]() {
@@ -462,9 +367,6 @@ void Viewer::refresh_mesh() {
     shader_.uploadIndices(*(mesh_->get_indices()));
     shader_.uploadAttrib("position", *(mesh_->get_points()));
     shader_.uploadAttrib("valence_color", *(mesh_->get_colors_valence()));
-    shader_.uploadAttrib("unicruvature_color", *(mesh_->get_colors_unicurvature()));
-    shader_.uploadAttrib("curvature_color", *(mesh_->get_color_curvature()));
-    shader_.uploadAttrib("gaussian_curv_color", *(mesh_->get_colors_gaussian_curv()));
     shader_.uploadAttrib("normal", *(mesh_->get_normals()));
     shader_.setUniform("color_mode", int(color_mode));
     shader_.setUniform("intensity", Vector3f(0.98, 0.59, 0.04));
