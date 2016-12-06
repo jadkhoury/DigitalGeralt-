@@ -40,6 +40,7 @@ MeshProcessing::MeshProcessing(const string& filename) {
          * Algo:
          * 1) iterate over all vertices and create a new vertex slid down the normal
          * 2) iterate over all faces and create the same faces for the associated vertex
+         * 3) iterate over boundary edge and create the boder to clos the solid
          *
          */
 
@@ -63,14 +64,9 @@ MeshProcessing::MeshProcessing(const string& filename) {
                 mesh_.vertex_property<bool>("v:is_primary");
 
 
-        // return true if the vertex was a boundary vertex and we glue them to his juxtaposed
-        Mesh::Vertex_property <bool> is_border_done =
-                mesh_.vertex_property<bool>("v:is_border_done");
-
-
-        // return true if the vertex was a boundary vertex and we glue them to his juxtaposed
-        Mesh::Vertex_property <bool> is_my_boundary =
-                mesh_.vertex_property<bool>("v:is_my_boundary");
+        // return true if the edge was a boundary edge and we generate the border for this edge
+        Mesh::Edge_property <bool> edge_border_done =
+                mesh_.edge_property<bool>("v:is_edge_border_done");
 
 
 
@@ -95,16 +91,10 @@ MeshProcessing::MeshProcessing(const string& filename) {
             assiociated_v = mesh_.add_vertex(p - ( thickness * normal) );
             associated_vertex[assiociated_v] = (*v_it); // we also bound the new vertex with the "old" one
             is_primary[assiociated_v] = false;
-            is_border_done[assiociated_v] = false;
-            is_my_boundary[assiociated_v] = false;
 
             // update the "old" vertex
             associated_vertex[*v_it] = assiociated_v;
             is_primary[*v_it] = true;
-            is_border_done[*v_it] = false; // init for the step border genreation
-            if (mesh_.is_boundary(*v_it)){
-                is_my_boundary[*v_it] = true;
-            }
 
         }
 
@@ -112,7 +102,7 @@ MeshProcessing::MeshProcessing(const string& filename) {
 
 
 
-        // the new vertex should not have faces, so we can iterate over all faces
+        // the new vertex should not have faces, so we can iterate over all faces and generate a face for the associated vertecies
 
         Mesh::Face_iterator f_it, f_begin, f_end;
         f_begin = mesh_.faces_begin();
@@ -142,75 +132,60 @@ MeshProcessing::MeshProcessing(const string& filename) {
         }
 
 
-        v_begin = mesh_.vertices_begin();
-        v_end = mesh_.vertices_end();
 
-        Mesh::Halfedge h ;
+
+        // we iterate over all halfedges and create a face if the halfedge is:
+        // * primary (not generate for thickness)
+        // * boundary
+        // * not allready done
+
         Mesh::Vertex from_v, to_v, juxtaposed_v_from, juxtaposed_v_to;
-        Mesh::Halfedge_around_vertex_circulator hc, hc_end;
+
+        Mesh::Halfedge_iterator h_it, h_begin, h_end;
+        h_begin = mesh_.halfedges_begin();
+        h_end = mesh_.halfedges_end();
+
+        Mesh::Edge e;
+
+        bool is_primary_halfedge = false;
 
 
         int count = 0;
 
-        for (v_it = v_begin; v_it != v_end; ++v_it) {
+        for (h_it = h_begin; h_it != h_end; ++h_it) {
 
-             // find a new boundary
-            if (is_my_boundary[*v_it] && (! is_border_done[*v_it] )){
+            from_v = mesh_.from_vertex(*h_it);
+            to_v = mesh_.to_vertex(*h_it);
 
-                from_v = *v_it;
-                // itrerate over this boundary
-                do {
-
-
-                    // find the right halfedge (should be to a vertex boundary && not done && primary)
-                    hc = mesh_.halfedges(from_v);
-                    hc_end = hc;
-                    bool found_next_h = false;
-
-                    int minicount = 0;
-                    do
-                    {
-                        ++minicount;
-                        h = *hc;
-                        to_v = mesh_.to_vertex(h);
-                        bool t1 = is_my_boundary[to_v];
-                        bool t2 = ! is_border_done[to_v];
-                        if (is_my_boundary[to_v] && (! is_border_done[to_v])){
-                            found_next_h = true;
-                        }
-                        else {
-                            std::cout << "not first h" << std::endl;
-                        }
-
-                    } while( (++hc != hc_end) and found_next_h == false);
-
-                    // Normaly the only case who this should happend id when we come back to the first vertex
-                    if ((hc == hc_end) && (found_next_h == false )  )  {
-                        to_v = *v_it;
-                    }
+            juxtaposed_v_from = associated_vertex[from_v];
+            juxtaposed_v_to = associated_vertex[to_v];
 
 
-                    // generate the border
-                    juxtaposed_v_from = associated_vertex[from_v];
-                    mesh_.add_triangle( from_v, juxtaposed_v_from, to_v);
+            if (is_primary[from_v] && is_primary[to_v]){
+                is_primary_halfedge = true;
 
-                    // juxtaposed_v_to = associated_vertex[to_v];
-                    // mesh_.add_triangle(to_v, juxtaposed_v_to, juxtaposed_v_from );
-
-                    is_border_done[from_v] = true;
-                    from_v = to_v;
-
-                    ++ count;
-
-                } while (from_v != *v_it);
+            }
+            else if (! is_primary[from_v] && ! is_primary[to_v]){
+                is_primary_halfedge = false;
+            }
+            else {
+                throw "a uncorrect halfedge was found!";
+            }
 
 
+            if (is_primary_halfedge ){
 
+                e = mesh_.edge(*h_it);
 
+                if(! edge_border_done[e]){
+                    mesh_.add_triangle( from_v,juxtaposed_v_from, to_v);
+                    // mesh_.add_triangle( to_v,juxtaposed_v_from, juxtaposed_v_to); // do not add the face, why?
+                    edge_border_done[e] = true;
+
+                }
             }
 
         }
-
 
 
 

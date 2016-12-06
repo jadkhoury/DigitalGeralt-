@@ -39,8 +39,8 @@
       <file leaf-file-name="mesh_processing.cpp" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/implicit_fairing/mesh_processing.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1159">
-              <caret line="178" column="48" selection-start-line="178" selection-start-column="48" selection-end-line="178" selection-end-column="48" />
+            <state relative-caret-position="578">
+              <caret line="192" column="30" selection-start-line="192" selection-start-column="30" selection-end-line="192" selection-end-column="30" />
               <folding />
             </state>
           </provider>
@@ -49,8 +49,8 @@
       <file leaf-file-name="Surface_mesh.cpp" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/externals/surface_mesh/surface_mesh/Surface_mesh.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="32">
-              <caret line="351" column="0" selection-start-line="351" selection-start-column="0" selection-end-line="351" selection-end-column="0" />
+            <state relative-caret-position="192">
+              <caret line="711" column="6" selection-start-line="711" selection-start-column="0" selection-end-line="711" selection-end-column="6" />
               <folding />
             </state>
           </provider>
@@ -69,8 +69,8 @@
       <file leaf-file-name="Surface_mesh.h" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/externals/surface_mesh/surface_mesh/Surface_mesh.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="87">
-              <caret line="1075" column="16" selection-start-line="1075" selection-start-column="16" selection-end-line="1075" selection-end-column="16" />
+            <state relative-caret-position="192">
+              <caret line="277" column="39" selection-start-line="277" selection-start-column="32" selection-end-line="277" selection-end-column="39" />
               <folding>
                 <element signature="e#37678#37687#0" expanded="true" />
                 <element signature="e#40496#40505#0" expanded="true" />
@@ -386,12 +386,12 @@
       <workItem from="1480864764767" duration="14802000" />
       <workItem from="1480881520149" duration="6718000" />
       <workItem from="1480928019311" duration="9774000" />
-      <workItem from="1481016322592" duration="1774000" />
+      <workItem from="1481016322592" duration="5478000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="33068000" />
+    <option name="totallyTimeSpent" value="36772000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="-17" width="1920" height="1078" extended-state="0" />
@@ -433,23 +433,8 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/implicit_fairing/mesh_processing.cpp</url>
-          <line>159</line>
-          <option name="timeStamp" value="7" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/implicit_fairing/mesh_processing.cpp</url>
-          <line>188</line>
-          <option name="timeStamp" value="9" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/implicit_fairing/mesh_processing.cpp</url>
           <line>153</line>
           <option name="timeStamp" value="12" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/implicit_fairing/mesh_processing.cpp</url>
-          <line>181</line>
-          <option name="timeStamp" value="16" />
         </line-breakpoint>
       </breakpoints>
       <option name="time" value="17" />
@@ -675,21 +660,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/externals/surface_mesh/surface_mesh/Surface_mesh.h">
+    <entry file="file:///usr/include/c++/4.9/bits/stl_bvector.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="87">
-          <caret line="1075" column="16" selection-start-line="1075" selection-start-column="16" selection-end-line="1075" selection-end-column="16" />
-          <folding>
-            <element signature="e#37678#37687#0" expanded="true" />
-            <element signature="e#40496#40505#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/externals/surface_mesh/surface_mesh/Surface_mesh.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="32">
-          <caret line="351" column="0" selection-start-line="351" selection-start-column="0" selection-end-line="351" selection-end-column="0" />
+        <state relative-caret-position="132">
+          <caret line="949" column="0" selection-start-line="949" selection-start-column="0" selection-end-line="949" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -702,18 +676,29 @@
         </state>
       </provider>
     </entry>
-    <entry file="file:///usr/include/c++/4.9/bits/stl_bvector.h">
+    <entry file="file://$PROJECT_DIR$/externals/surface_mesh/surface_mesh/Surface_mesh.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="132">
-          <caret line="949" column="0" selection-start-line="949" selection-start-column="0" selection-end-line="949" selection-end-column="0" />
+        <state relative-caret-position="192">
+          <caret line="711" column="6" selection-start-line="711" selection-start-column="0" selection-end-line="711" selection-end-column="6" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/externals/surface_mesh/surface_mesh/Surface_mesh.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="192">
+          <caret line="277" column="39" selection-start-line="277" selection-start-column="32" selection-end-line="277" selection-end-column="39" />
+          <folding>
+            <element signature="e#37678#37687#0" expanded="true" />
+            <element signature="e#40496#40505#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/implicit_fairing/mesh_processing.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1159">
-          <caret line="178" column="48" selection-start-line="178" selection-start-column="48" selection-end-line="178" selection-end-column="48" />
+        <state relative-caret-position="578">
+          <caret line="192" column="30" selection-start-line="192" selection-start-column="30" selection-end-line="192" selection-end-column="30" />
           <folding />
         </state>
       </provider>
