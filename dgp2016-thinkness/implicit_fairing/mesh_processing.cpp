@@ -58,6 +58,23 @@ MeshProcessing::MeshProcessing(const string& filename) {
 
 
 
+        // return true if the vertex was not generate for thickness
+        Mesh::Vertex_property <bool> is_primary =
+                mesh_.vertex_property<bool>("v:is_primary");
+
+
+        // return true if the vertex was a boundary vertex and we glue them to his juxtaposed
+        Mesh::Vertex_property <bool> is_border_done =
+                mesh_.vertex_property<bool>("v:is_border_done");
+
+
+        // return true if the vertex was a boundary vertex and we glue them to his juxtaposed
+        Mesh::Vertex_property <bool> is_my_boundary =
+                mesh_.vertex_property<bool>("v:is_my_boundary");
+
+
+
+
         /*
          * Iterate over all vertex and create a new vertex in the oposite direction of the normal
          * We call this new vertex the associated vertex and we store a link to this
@@ -74,8 +91,20 @@ MeshProcessing::MeshProcessing(const string& filename) {
             p = mesh_.position(*v_it);
             normal = vertex_normal[*v_it];
 
+            // generate a nes vertex
             assiociated_v = mesh_.add_vertex(p - ( thickness * normal) );
+            associated_vertex[assiociated_v] = (*v_it); // we also bound the new vertex with the "old" one
+            is_primary[assiociated_v] = false;
+            is_border_done[assiociated_v] = false;
+            is_my_boundary[assiociated_v] = false;
+
+            // update the "old" vertex
             associated_vertex[*v_it] = assiociated_v;
+            is_primary[*v_it] = true;
+            is_border_done[*v_it] = false; // init for the step border genreation
+            if (mesh_.is_boundary(*v_it)){
+                is_my_boundary[*v_it] = true;
+            }
 
         }
 
@@ -90,7 +119,6 @@ MeshProcessing::MeshProcessing(const string& filename) {
         f_end = mesh_.faces_end();
 
         Mesh::Vertex_around_face_circulator vc, vc_end;
-
 
         for (f_it = f_begin; f_it != f_end; ++f_it) {
 
@@ -112,6 +140,78 @@ MeshProcessing::MeshProcessing(const string& filename) {
             mesh_.add_triangle(associated_vertices[0], associated_vertices[1], associated_vertices[2] );
 
         }
+
+
+        v_begin = mesh_.vertices_begin();
+        v_end = mesh_.vertices_end();
+
+        Mesh::Halfedge h ;
+        Mesh::Vertex from_v, to_v, juxtaposed_v_from, juxtaposed_v_to;
+        Mesh::Halfedge_around_vertex_circulator hc, hc_end;
+
+
+        int count = 0;
+
+        for (v_it = v_begin; v_it != v_end; ++v_it) {
+
+             // find a new boundary
+            if (is_my_boundary[*v_it] && (! is_border_done[*v_it] )){
+
+                from_v = *v_it;
+                // itrerate over this boundary
+                do {
+
+
+                    // find the right halfedge (should be to a vertex boundary && not done && primary)
+                    hc = mesh_.halfedges(from_v);
+                    hc_end = hc;
+                    bool found_next_h = false;
+
+                    int minicount = 0;
+                    do
+                    {
+                        ++minicount;
+                        h = *hc;
+                        to_v = mesh_.to_vertex(h);
+                        bool t1 = is_my_boundary[to_v];
+                        bool t2 = ! is_border_done[to_v];
+                        if (is_my_boundary[to_v] && (! is_border_done[to_v])){
+                            found_next_h = true;
+                        }
+                        else {
+                            std::cout << "not first h" << std::endl;
+                        }
+
+                    } while( (++hc != hc_end) and found_next_h == false);
+
+                    // Normaly the only case who this should happend id when we come back to the first vertex
+                    if ((hc == hc_end) && (found_next_h == false )  )  {
+                        to_v = *v_it;
+                    }
+
+
+                    // generate the border
+                    juxtaposed_v_from = associated_vertex[from_v];
+                    mesh_.add_triangle( from_v, juxtaposed_v_from, to_v);
+
+                    // juxtaposed_v_to = associated_vertex[to_v];
+                    // mesh_.add_triangle(to_v, juxtaposed_v_to, juxtaposed_v_from );
+
+                    is_border_done[from_v] = true;
+                    from_v = to_v;
+
+                    ++ count;
+
+                } while (from_v != *v_it);
+
+
+
+
+            }
+
+        }
+
+
 
 
         cout << "# of vertices : " << mesh_.n_vertices() << endl;
