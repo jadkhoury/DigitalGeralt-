@@ -55,7 +55,7 @@ public:
     void calc_uniform_mean_curvature();
     void calc_gauss_curvature();
 
-    void give_thickness();
+    void give_thickness(float thickness);
 
 private:
     void calc_weights();

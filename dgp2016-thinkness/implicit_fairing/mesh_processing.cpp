@@ -31,7 +31,7 @@ namespace mesh_processing {
 // THICKNESS
 // ============================================================================
 
-    void MeshProcessing::give_thickness() {
+    void MeshProcessing::give_thickness(float thickness) {
         /*
          * The goal of this fuction is to transform a surface into a solid.
          * The solid should have the same shape as surface but with a none infinitely small thickness,
@@ -39,13 +39,15 @@ namespace mesh_processing {
          *
          * Algo:
          * 1) iterate over all vertices and create a new vertex slid down the normal
-         * 2) iterate over all faces and create the same faces for the associated vertex
-         * 3) iterate over boundary edge and create the boder to clos the solid
+         * 2) iterate over all faces and create a face for the associated vertices.
+         *    Becarefull, face have a side and the side should be opposed to the original face.
+         *    (the face side is given by the order of the vertices in add_triangle function)
+         * 3) iterate over boundary edge and create face to close the solid
          *
          */
 
 
-        const float thickness = 6;
+
 
         Mesh::Vertex_property <Point> vertex_normal =
                 mesh_.vertex_property<Point>("v:normal");
@@ -56,7 +58,6 @@ namespace mesh_processing {
         // why in not reconize the type ???
         Mesh::Vertex_property <surface_mesh::Surface_mesh::Vertex> associated_vertex =
                 mesh_.vertex_property<surface_mesh::Surface_mesh::Vertex>("v:associated_vertex");
-
 
 
         // return true if the vertex was not generate for thickness
@@ -113,23 +114,22 @@ namespace mesh_processing {
         for (f_it = f_begin; f_it != f_end; ++f_it) {
 
             Mesh::Face f = *f_it;
-
             vc = mesh_.vertices(f);
             vc_end = vc;
-            Mesh::Vertex associated_vertices[3];
 
+            Mesh::Vertex associated_vertices[3];
 
             int i = 0;
             do {
-                if (  is_primary[*vc]){
-                    std::cout << "We should have only primary vertices heres! " << std::endl;
+                if ( ! is_primary[*vc]){
+                    throw std::logic_error("We should have only primary vertices here! ");
                 }
                 associated_vertices[i] = associated_vertex[*vc];
                 ++i;
 
             } while (++vc != vc_end);
 
-            mesh_.add_triangle(associated_vertices[0],  associated_vertices[2], associated_vertices[1]);
+            mesh_.add_triangle( associated_vertices[2], associated_vertices[1], associated_vertices[0]); // give also a side to the face
 
         }
 
@@ -137,20 +137,20 @@ namespace mesh_processing {
 
 
         // we iterate over all halfedges and create a face if the halfedge is:
+
         // * primary (not generate for thickness)
         // * boundary
-        // * not allready done
+        // * not already done
 
         Mesh::Vertex from_v, to_v, juxtaposed_v_from, juxtaposed_v_to;
 
         Mesh::Halfedge_iterator h_it, h_begin, h_end;
+
         h_begin = mesh_.halfedges_begin();
         h_end = mesh_.halfedges_end();
 
         Mesh::Edge e;
-
         bool is_primary_halfedge = false;
-
 
         int count = 0;
 
@@ -164,14 +164,13 @@ namespace mesh_processing {
                 juxtaposed_v_from = associated_vertex[from_v];
                 juxtaposed_v_to = associated_vertex[to_v];
 
-
                 if (is_primary[from_v] && is_primary[to_v]) {
                     is_primary_halfedge = true;
 
                 } else if (!is_primary[from_v] && !is_primary[to_v]) {
                     is_primary_halfedge = false;
                 } else {
-                    throw "a uncorrect halfedge was found!";
+                    throw std::logic_error("a uncorrect halfedge was found!");
                 }
 
 
@@ -181,16 +180,10 @@ namespace mesh_processing {
 
                     if (!edge_border_done[e]) {
 
-                        Mesh::Face f1 = mesh_.add_triangle(from_v, to_v,  juxtaposed_v_from); // do not add the face, why?
+                        Mesh::Face f1 = mesh_.add_triangle(from_v, to_v,  juxtaposed_v_from); // the sense of the vertices should be use
                         Mesh::Face f2 = mesh_.add_triangle(juxtaposed_v_from, to_v, juxtaposed_v_to);
 
-                        bool test = mesh_.is_boundary(to_v);
-
-
-
-
                         edge_border_done[e] = true;
-
                     }
                 }
             }
@@ -201,7 +194,6 @@ namespace mesh_processing {
         cout << "# of vertices : " << mesh_.n_vertices() << endl;
         cout << "# of faces : " << mesh_.n_faces() << endl;
         cout << "# of edges : " << mesh_.n_edges() << endl;
-
 
     }
 

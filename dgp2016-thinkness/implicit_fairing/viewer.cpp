@@ -337,7 +337,7 @@ Viewer::Viewer() : nanogui::Screen(Eigen::Vector2i(1024, 768), "DGP Viewer") {
 
     b = new Button(window_, "Thickness");
     b->setCallback([this]() {
-        mesh_->give_thickness();
+        mesh_->give_thickness(2);
         mesh_->compute_mesh_properties();
         this->refresh_mesh();
     });
