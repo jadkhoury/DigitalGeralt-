@@ -15,17 +15,17 @@
 
 namespace mesh_processing {
 
-using surface_mesh::Point;
-using surface_mesh::Scalar;
-using surface_mesh::Color;
-using std::min;
-using std::max;
-using std::cout;
-using std::endl;
+    using surface_mesh::Point;
+    using surface_mesh::Scalar;
+    using surface_mesh::Color;
+    using std::min;
+    using std::max;
+    using std::cout;
+    using std::endl;
 
-MeshProcessing::MeshProcessing(const string& filename) {
-    load_mesh(filename);
-}
+    MeshProcessing::MeshProcessing(const string &filename) {
+        load_mesh(filename);
+    }
 
 // ============================================================================
 // THICKNESS
@@ -45,7 +45,7 @@ MeshProcessing::MeshProcessing(const string& filename) {
          */
 
 
-        const float thickness = 2;
+        const float thickness = 6;
 
         Mesh::Vertex_property <Point> vertex_normal =
                 mesh_.vertex_property<Point>("v:normal");
@@ -60,12 +60,12 @@ MeshProcessing::MeshProcessing(const string& filename) {
 
 
         // return true if the vertex was not generate for thickness
-        Mesh::Vertex_property <bool> is_primary =
+        Mesh::Vertex_property<bool> is_primary =
                 mesh_.vertex_property<bool>("v:is_primary");
 
 
         // return true if the edge was a boundary edge and we generate the border for this edge
-        Mesh::Edge_property <bool> edge_border_done =
+        Mesh::Edge_property<bool> edge_border_done =
                 mesh_.edge_property<bool>("v:is_edge_border_done");
 
 
@@ -87,8 +87,8 @@ MeshProcessing::MeshProcessing(const string& filename) {
             p = mesh_.position(*v_it);
             normal = vertex_normal[*v_it];
 
-            // generate a nes vertex
-            assiociated_v = mesh_.add_vertex(p - ( thickness * normal) );
+            // generate a new vertex
+            assiociated_v = mesh_.add_vertex(p - (thickness * normal));
             associated_vertex[assiociated_v] = (*v_it); // we also bound the new vertex with the "old" one
             is_primary[assiociated_v] = false;
 
@@ -113,21 +113,23 @@ MeshProcessing::MeshProcessing(const string& filename) {
         for (f_it = f_begin; f_it != f_end; ++f_it) {
 
             Mesh::Face f = *f_it;
+
             vc = mesh_.vertices(f);
             vc_end = vc;
-
             Mesh::Vertex associated_vertices[3];
 
 
             int i = 0;
             do {
-
+                if (  is_primary[*vc]){
+                    std::cout << "We should have only primary vertices heres! " << std::endl;
+                }
                 associated_vertices[i] = associated_vertex[*vc];
                 ++i;
 
             } while (++vc != vc_end);
 
-            mesh_.add_triangle(associated_vertices[0], associated_vertices[1], associated_vertices[2] );
+            mesh_.add_triangle(associated_vertices[0],  associated_vertices[2], associated_vertices[1]);
 
         }
 
@@ -154,39 +156,46 @@ MeshProcessing::MeshProcessing(const string& filename) {
 
         for (h_it = h_begin; h_it != h_end; ++h_it) {
 
-            from_v = mesh_.from_vertex(*h_it);
-            to_v = mesh_.to_vertex(*h_it);
+            if (mesh_.is_boundary(*h_it)) {
 
-            juxtaposed_v_from = associated_vertex[from_v];
-            juxtaposed_v_to = associated_vertex[to_v];
+                from_v = mesh_.from_vertex(*h_it);
+                to_v = mesh_.to_vertex(*h_it);
 
-
-            if (is_primary[from_v] && is_primary[to_v]){
-                is_primary_halfedge = true;
-
-            }
-            else if (! is_primary[from_v] && ! is_primary[to_v]){
-                is_primary_halfedge = false;
-            }
-            else {
-                throw "a uncorrect halfedge was found!";
-            }
+                juxtaposed_v_from = associated_vertex[from_v];
+                juxtaposed_v_to = associated_vertex[to_v];
 
 
-            if (is_primary_halfedge ){
+                if (is_primary[from_v] && is_primary[to_v]) {
+                    is_primary_halfedge = true;
 
-                e = mesh_.edge(*h_it);
+                } else if (!is_primary[from_v] && !is_primary[to_v]) {
+                    is_primary_halfedge = false;
+                } else {
+                    throw "a uncorrect halfedge was found!";
+                }
 
-                if(! edge_border_done[e]){
-                    mesh_.add_triangle( from_v,juxtaposed_v_from, to_v);
-                    // mesh_.add_triangle( to_v,juxtaposed_v_from, juxtaposed_v_to); // do not add the face, why?
-                    edge_border_done[e] = true;
 
+                if (is_primary_halfedge) {
+
+                    e = mesh_.edge(*h_it);
+
+                    if (!edge_border_done[e]) {
+
+                        Mesh::Face f1 = mesh_.add_triangle(from_v, to_v,  juxtaposed_v_from); // do not add the face, why?
+                        Mesh::Face f2 = mesh_.add_triangle(juxtaposed_v_from, to_v, juxtaposed_v_to);
+
+                        bool test = mesh_.is_boundary(to_v);
+
+
+
+
+                        edge_border_done[e] = true;
+
+                    }
                 }
             }
 
         }
-
 
 
         cout << "# of vertices : " << mesh_.n_vertices() << endl;
@@ -203,239 +212,235 @@ MeshProcessing::MeshProcessing(const string& filename) {
         std::cout << s << std::endl;
     }
 
-float computeAngle(surface_mesh::Vec3 origin, surface_mesh::Vec3 p1, surface_mesh::Vec3 p2){
-    surface_mesh::Vec3 v1 = normalize(p1 - origin);
-    surface_mesh::Vec3 v2 = normalize(p2 - origin);
-    return acos(dot(v1, v2));
-}
-
-
-
-void MeshProcessing::calc_weights() {
-    calc_edges_weights();
-    calc_vertices_weights();
-}
-
-void MeshProcessing::calc_edges_weights() {
-    auto e_weight = mesh_.edge_property<Scalar>("e:weight", 0.0f);
-    auto points = mesh_.vertex_property<Point>("v:point");
-
-    Mesh::Halfedge h0, h1, h2;
-    Point p0, p1, p2, d0, d1;
-
-    for (auto e: mesh_.edges())
-    {
-        e_weight[e] = 0.0;
-
-        h0 = mesh_.halfedge(e, 0);
-        p0 = points[mesh_.to_vertex(h0)];
-
-        h1 = mesh_.halfedge(e, 1);
-        p1 = points[mesh_.to_vertex(h1)];
-
-        if (!mesh_.is_boundary(h0))
-        {
-            h2 = mesh_.next_halfedge(h0);
-            p2 = points[mesh_.to_vertex(h2)];
-            d0 = p0 - p2;
-            d1 = p1 - p2;
-            e_weight[e] += dot(d0,d1) / norm(cross(d0,d1));
-        }
-
-        if (!mesh_.is_boundary(h1))
-        {
-            h2 = mesh_.next_halfedge(h1);
-            p2 = points[mesh_.to_vertex(h2)];
-            d0 = p0 - p2;
-            d1 = p1 - p2;
-            e_weight[e] += dot(d0,d1) / norm(cross(d0,d1));
-        }
-    }
-}
-
-void MeshProcessing::calc_vertices_weights() {
-    Mesh::Face_around_vertex_circulator vf_c, vf_end;
-    Mesh::Vertex_around_face_circulator fv_c;
-    Scalar area;
-    auto v_weight = mesh_.vertex_property<Scalar>("v:weight", 0.0f);
-
-    for (auto v: mesh_.vertices()) {
-        area = 0.0;
-        vf_c = mesh_.faces(v);
-
-        if(!vf_c) {
-            continue;
-        }
-
-        vf_end = vf_c;
-
-        do {
-            fv_c = mesh_.vertices(*vf_c);
-
-            const Point& P = mesh_.position(*fv_c);  ++fv_c;
-            const Point& Q = mesh_.position(*fv_c);  ++fv_c;
-            const Point& R = mesh_.position(*fv_c);
-
-            area += norm(cross(Q-P, R-P)) * 0.5f * 0.3333f;
-
-        } while(++vf_c != vf_end);
-
-        v_weight[v] = 0.5 / area;
-    }
-}
-
-void MeshProcessing::load_mesh(const string &filename) {
-    if (!mesh_.read(filename)) {
-        std::cerr << "Mesh not found, exiting." << std::endl;
-        exit(-1);
+    float computeAngle(surface_mesh::Vec3 origin, surface_mesh::Vec3 p1, surface_mesh::Vec3 p2) {
+        surface_mesh::Vec3 v1 = normalize(p1 - origin);
+        surface_mesh::Vec3 v2 = normalize(p2 - origin);
+        return acos(dot(v1, v2));
     }
 
-    cout << "Mesh "<< filename << " loaded." << endl;
-    cout << "# of vertices : " << mesh_.n_vertices() << endl;
-    cout << "# of faces : " << mesh_.n_faces() << endl;
-    cout << "# of edges : " << mesh_.n_edges() << endl;
 
-    // Compute the center of the mesh
-    mesh_center_ = Point(0.0f, 0.0f, 0.0f);
-    for (auto v: mesh_.vertices()) {
-        mesh_center_ += mesh_.position(v);
+    void MeshProcessing::calc_weights() {
+        calc_edges_weights();
+        calc_vertices_weights();
     }
-    mesh_center_ /= mesh_.n_vertices();
 
-    // Compute the maximum distance from all points in the mesh and the center
-    dist_max_ = 0.0f;
-    for (auto v: mesh_.vertices()) {
-        if (distance(mesh_center_, mesh_.position(v)) > dist_max_) {
-            dist_max_ = distance(mesh_center_, mesh_.position(v));
+    void MeshProcessing::calc_edges_weights() {
+        auto e_weight = mesh_.edge_property<Scalar>("e:weight", 0.0f);
+        auto points = mesh_.vertex_property<Point>("v:point");
+
+        Mesh::Halfedge h0, h1, h2;
+        Point p0, p1, p2, d0, d1;
+
+        for (auto e: mesh_.edges()) {
+            e_weight[e] = 0.0;
+
+            h0 = mesh_.halfedge(e, 0);
+            p0 = points[mesh_.to_vertex(h0)];
+
+            h1 = mesh_.halfedge(e, 1);
+            p1 = points[mesh_.to_vertex(h1)];
+
+            if (!mesh_.is_boundary(h0)) {
+                h2 = mesh_.next_halfedge(h0);
+                p2 = points[mesh_.to_vertex(h2)];
+                d0 = p0 - p2;
+                d1 = p1 - p2;
+                e_weight[e] += dot(d0, d1) / norm(cross(d0, d1));
+            }
+
+            if (!mesh_.is_boundary(h1)) {
+                h2 = mesh_.next_halfedge(h1);
+                p2 = points[mesh_.to_vertex(h2)];
+                d0 = p0 - p2;
+                d1 = p1 - p2;
+                e_weight[e] += dot(d0, d1) / norm(cross(d0, d1));
+            }
         }
     }
 
-    compute_mesh_properties();
+    void MeshProcessing::calc_vertices_weights() {
+        Mesh::Face_around_vertex_circulator vf_c, vf_end;
+        Mesh::Vertex_around_face_circulator fv_c;
+        Scalar area;
+        auto v_weight = mesh_.vertex_property<Scalar>("v:weight", 0.0f);
 
-    // Store the original mesh, this might be useful for some computations
-    mesh_init_ = mesh_;
-}
+        for (auto v: mesh_.vertices()) {
+            area = 0.0;
+            vf_c = mesh_.faces(v);
 
-void MeshProcessing::compute_mesh_properties() {
-    Mesh::Vertex_property<Point> vertex_normal =
-            mesh_.vertex_property<Point>("v:normal");
-    mesh_.update_face_normals();
-    mesh_.update_vertex_normals();
-    Mesh::Vertex_property<Color> v_color_valence =
-            mesh_.vertex_property<Color>("v:color_valence",
-                                         Color(1.0f, 1.0f, 1.0f));
+            if (!vf_c) {
+                continue;
+            }
 
+            vf_end = vf_c;
 
-    Mesh::Vertex_property<Scalar> vertex_valence =
-            mesh_.vertex_property<Scalar>("v:valence", 0.0f);
-    for (auto v: mesh_.vertices()) {
-        vertex_valence[v] = mesh_.valence(v);
-    }
+            do {
+                fv_c = mesh_.vertices(*vf_c);
 
+                const Point &P = mesh_.position(*fv_c);
+                ++fv_c;
+                const Point &Q = mesh_.position(*fv_c);
+                ++fv_c;
+                const Point &R = mesh_.position(*fv_c);
 
-    calc_weights();
+                area += norm(cross(Q - P, R - P)) * 0.5f * 0.3333f;
 
+            } while (++vf_c != vf_end);
 
-    color_coding(vertex_valence, &mesh_, v_color_valence, 100 /* bound */);
-
-    // get the mesh attributes and upload them to the GPU
-    int j = 0;
-    unsigned int n_vertices(mesh_.n_vertices());
-
-    // Create big matrices to send the data to the GPU with the required
-    // format
-    color_valence_ = Eigen::MatrixXf(3, n_vertices);
-    normals_ = Eigen::MatrixXf(3, n_vertices);
-    points_ = Eigen::MatrixXf(3, n_vertices);
-    indices_ = MatrixXu(3, mesh_.n_faces());
-
-    for(auto f: mesh_.faces()) {
-        std::vector<float> vv(3);
-        int k = 0;
-        for (auto v: mesh_.vertices(f)) {
-            vv[k] = v.idx();
-            ++k;
-        }
-        indices_.col(j) << vv[0], vv[1], vv[2];
-        ++j;
-    }
-
-    j = 0;
-    for (auto v: mesh_.vertices()) {
-        points_.col(j) << mesh_.position(v).x,
-                mesh_.position(v).y,
-                mesh_.position(v).z;
-
-        normals_.col(j) << vertex_normal[v].x,
-                vertex_normal[v].y,
-                vertex_normal[v].z;
-
-        color_valence_.col(j) << v_color_valence[v].x,
-                v_color_valence[v].y,
-                v_color_valence[v].z;
-
-
-        ++j;
-    }
-}
-
-void MeshProcessing::color_coding(Mesh::Vertex_property<Scalar> prop, Mesh *mesh,
-                                  Mesh::Vertex_property<Color> color_prop, int bound) {
-    // Get the value array
-    std::vector<Scalar> values = prop.vector();
-
-    // discard upper and lower bound
-    unsigned int n = values.size()-1;
-    unsigned int i = n / bound;
-    std::sort(values.begin(), values.end());
-    Scalar min_value = values[i], max_value = values[n-1-i];
-
-    // map values to colors
-    for (auto v: mesh->vertices())
-    {
-        set_color(v, value_to_color(prop[v], min_value, max_value), color_prop);
-    }
-}
-
-void MeshProcessing::set_color(Mesh::Vertex v, const Color& col,
-                               Mesh::Vertex_property<Color> color_prop)
-{
-    color_prop[v] = col;
-}
-
-Color MeshProcessing::value_to_color(Scalar value, Scalar min_value, Scalar max_value) {
-    Scalar v0, v1, v2, v3, v4;
-    v0 = min_value + 0.0/4.0 * (max_value - min_value);
-    v1 = min_value + 1.0/4.0 * (max_value - min_value);
-    v2 = min_value + 2.0/4.0 * (max_value - min_value);
-    v3 = min_value + 3.0/4.0 * (max_value - min_value);
-    v4 = min_value + 4.0/4.0 * (max_value - min_value);
-
-    Color col(1.0f, 1.0f, 1.0f);
-
-    if (value < v0) {
-        col = Color(0, 0, 1);
-    } else if (value > v4) {
-        col = Color(1, 0, 0);
-    } else if (value <= v2) {
-        if (value <= v1) { // [v0, v1]
-            Scalar u =  (value - v0) / (v1 - v0);
-            col = Color(0, u, 1);
-        } else { // ]v1, v2]
-            Scalar u = (value - v1) / (v2 - v1);
-            col = Color(0, 1, 1-u);
-        }
-    } else {
-        if (value <= v3) { // ]v2, v3]
-            Scalar u = (value - v2) / (v3 - v2);
-            col = Color(u, 1, 0);
-        } else { // ]v3, v4]
-            Scalar u = (value - v3) / (v4 - v3);
-            col = Color(1, 1-u, 0);
+            v_weight[v] = 0.5 / area;
         }
     }
-    return col;
-}
 
-MeshProcessing::~MeshProcessing() {}
+    void MeshProcessing::load_mesh(const string &filename) {
+        if (!mesh_.read(filename)) {
+            std::cerr << "Mesh not found, exiting." << std::endl;
+            exit(-1);
+        }
+
+        cout << "Mesh " << filename << " loaded." << endl;
+        cout << "# of vertices : " << mesh_.n_vertices() << endl;
+        cout << "# of faces : " << mesh_.n_faces() << endl;
+        cout << "# of edges : " << mesh_.n_edges() << endl;
+
+        // Compute the center of the mesh
+        mesh_center_ = Point(0.0f, 0.0f, 0.0f);
+        for (auto v: mesh_.vertices()) {
+            mesh_center_ += mesh_.position(v);
+        }
+        mesh_center_ /= mesh_.n_vertices();
+
+        // Compute the maximum distance from all points in the mesh and the center
+        dist_max_ = 0.0f;
+        for (auto v: mesh_.vertices()) {
+            if (distance(mesh_center_, mesh_.position(v)) > dist_max_) {
+                dist_max_ = distance(mesh_center_, mesh_.position(v));
+            }
+        }
+
+        compute_mesh_properties();
+
+        // Store the original mesh, this might be useful for some computations
+        mesh_init_ = mesh_;
+    }
+
+    void MeshProcessing::compute_mesh_properties() {
+        Mesh::Vertex_property <Point> vertex_normal =
+                mesh_.vertex_property<Point>("v:normal");
+        mesh_.update_face_normals();
+        mesh_.update_vertex_normals();
+        Mesh::Vertex_property <Color> v_color_valence =
+                mesh_.vertex_property<Color>("v:color_valence",
+                                             Color(1.0f, 1.0f, 1.0f));
+
+
+        Mesh::Vertex_property <Scalar> vertex_valence =
+                mesh_.vertex_property<Scalar>("v:valence", 0.0f);
+        for (auto v: mesh_.vertices()) {
+            vertex_valence[v] = mesh_.valence(v);
+        }
+
+
+        calc_weights();
+
+
+        color_coding(vertex_valence, &mesh_, v_color_valence, 100 /* bound */);
+
+        // get the mesh attributes and upload them to the GPU
+        int j = 0;
+        unsigned int n_vertices(mesh_.n_vertices());
+
+        // Create big matrices to send the data to the GPU with the required
+        // format
+        color_valence_ = Eigen::MatrixXf(3, n_vertices);
+        normals_ = Eigen::MatrixXf(3, n_vertices);
+        points_ = Eigen::MatrixXf(3, n_vertices);
+        indices_ = MatrixXu(3, mesh_.n_faces());
+
+        for (auto f: mesh_.faces()) {
+            std::vector<float> vv(3);
+            int k = 0;
+            for (auto v: mesh_.vertices(f)) {
+                vv[k] = v.idx();
+                ++k;
+            }
+            indices_.col(j) << vv[0], vv[1], vv[2];
+            ++j;
+        }
+
+        j = 0;
+        for (auto v: mesh_.vertices()) {
+            points_.col(j) << mesh_.position(v).x,
+                    mesh_.position(v).y,
+                    mesh_.position(v).z;
+
+            normals_.col(j) << vertex_normal[v].x,
+                    vertex_normal[v].y,
+                    vertex_normal[v].z;
+
+            color_valence_.col(j) << v_color_valence[v].x,
+                    v_color_valence[v].y,
+                    v_color_valence[v].z;
+
+
+            ++j;
+        }
+    }
+
+    void MeshProcessing::color_coding(Mesh::Vertex_property <Scalar> prop, Mesh *mesh,
+                                      Mesh::Vertex_property <Color> color_prop, int bound) {
+        // Get the value array
+        std::vector<Scalar> values = prop.vector();
+
+        // discard upper and lower bound
+        unsigned int n = values.size() - 1;
+        unsigned int i = n / bound;
+        std::sort(values.begin(), values.end());
+        Scalar min_value = values[i], max_value = values[n - 1 - i];
+
+        // map values to colors
+        for (auto v: mesh->vertices()) {
+            set_color(v, value_to_color(prop[v], min_value, max_value), color_prop);
+        }
+    }
+
+    void MeshProcessing::set_color(Mesh::Vertex v, const Color &col,
+                                   Mesh::Vertex_property <Color> color_prop) {
+        color_prop[v] = col;
+    }
+
+    Color MeshProcessing::value_to_color(Scalar value, Scalar min_value, Scalar max_value) {
+        Scalar v0, v1, v2, v3, v4;
+        v0 = min_value + 0.0 / 4.0 * (max_value - min_value);
+        v1 = min_value + 1.0 / 4.0 * (max_value - min_value);
+        v2 = min_value + 2.0 / 4.0 * (max_value - min_value);
+        v3 = min_value + 3.0 / 4.0 * (max_value - min_value);
+        v4 = min_value + 4.0 / 4.0 * (max_value - min_value);
+
+        Color col(1.0f, 1.0f, 1.0f);
+
+        if (value < v0) {
+            col = Color(0, 0, 1);
+        } else if (value > v4) {
+            col = Color(1, 0, 0);
+        } else if (value <= v2) {
+            if (value <= v1) { // [v0, v1]
+                Scalar u = (value - v0) / (v1 - v0);
+                col = Color(0, u, 1);
+            } else { // ]v1, v2]
+                Scalar u = (value - v1) / (v2 - v1);
+                col = Color(0, 1, 1 - u);
+            }
+        } else {
+            if (value <= v3) { // ]v2, v3]
+                Scalar u = (value - v2) / (v3 - v2);
+                col = Color(u, 1, 0);
+            } else { // ]v3, v4]
+                Scalar u = (value - v3) / (v4 - v3);
+                col = Color(1, 1 - u, 0);
+            }
+        }
+        return col;
+    }
+
+    MeshProcessing::~MeshProcessing() {}
 }

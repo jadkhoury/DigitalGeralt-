@@ -411,11 +411,12 @@ add_face(const std::vector<Vertex>& vertices)
         halfedges[i] = find_halfedge(vertices[i], vertices[ii]);
         is_new[i]    = !halfedges[i].is_valid();
 
-        if (!is_new[i] && !is_boundary(halfedges[i]))
+        if (!is_new[i] &&  !is_boundary(halfedges[i]))
         {
             // std::cerr << "Surface_meshT::add_face: complex edge\n";
             return Face();
         }
+
     }
 
 
