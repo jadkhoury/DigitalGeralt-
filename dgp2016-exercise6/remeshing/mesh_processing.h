@@ -22,6 +22,7 @@ typedef Eigen::Matrix<uint32_t, Eigen::Dynamic, Eigen::Dynamic> MatrixXu;
 namespace mesh_processing {
 
 using std::string;
+using std::vector;
 enum REMESHING_TYPE : int { AVERAGE = 0, CURV = 1, HEIGHT = 2 };
 
 class MeshProcessing {
@@ -50,6 +51,8 @@ public:
     void tangential_relaxation ();
     //Line added here
     void smooth_target_length();
+    vector<Mesh::Vertex> findCommonNeighbours(Mesh::Vertex v1, Mesh::Vertex v2);
+    void give_thickness();
 
     void load_mesh(const string& filename);
     void compute_mesh_properties();

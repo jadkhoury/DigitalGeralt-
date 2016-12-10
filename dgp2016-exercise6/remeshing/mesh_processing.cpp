@@ -22,29 +22,39 @@ using std::min;
 using std::max;
 using std::cout;
 using std::endl;
-
+using std::vector;
 MeshProcessing::MeshProcessing(const string &filename) {
     load_mesh(filename);
 }
 
 MeshProcessing::~MeshProcessing() {
 }
-
+bool first = true;
 void MeshProcessing::remesh(const REMESHING_TYPE &remeshing_type,
                             const int &num_iterations) {
-    calc_weights();
-    calc_mean_curvature();
-    calc_uniform_mean_curvature();
-    calc_gauss_curvature();
-    calc_target_length(remeshing_type);
+    if(first){
+        calc_weights();
+        calc_mean_curvature();
+        calc_uniform_mean_curvature();
+        calc_gauss_curvature();
+        calc_target_length(remeshing_type);
+        first = false;
+    }
 
-    // main remeshing loop
-    for (int i = 0; i < 5; ++i) {
+    //main remeshing loop
+    for (int i = 0; i < 1; ++i) {
         split_long_edges();
         collapse_short_edges();
         equalize_valences();
-        //tangential_relaxation ();
+        tangential_relaxation ();
+        mesh_.garbage_collection();
+        mesh_.update_face_normals();
+        mesh_.update_vertex_normals();
+        calc_weights();
     }
+
+    //give_thickness();
+
 }
 
 void MeshProcessing::calc_target_length(const REMESHING_TYPE &remeshing_type) {
@@ -170,6 +180,8 @@ void MeshProcessing::calc_target_length(const REMESHING_TYPE &remeshing_type) {
 }
 
 void MeshProcessing::split_long_edges() {
+    Mesh::Vertex_property <Point> normals = mesh_.vertex_property<Point>("v:normal");
+    Mesh::Vertex_property <Scalar> target_length = mesh_.vertex_property<Scalar>("v:length", 0);
     Mesh::Vertex v0, v1, v;
     Mesh::Halfedge h0, h1;
     bool finished;
@@ -178,8 +190,7 @@ void MeshProcessing::split_long_edges() {
     double L;
     int n_iter = 100;
     int ctr = 0;
-    Mesh::Vertex_property <Point> normals = mesh_.vertex_property<Point>("v:normal");
-    Mesh::Vertex_property <Scalar> target_length = mesh_.vertex_property<Scalar>("v:length", 0);
+
 
     for (finished = false, i = 0; !finished && i < n_iter; ++i) {
         finished = true;
@@ -196,8 +207,6 @@ void MeshProcessing::split_long_edges() {
             if (L > (4.0 / 3.0) * target_L) {
                 finished = false;
                 v = mesh_.add_vertex((mesh_.position(v0) + mesh_.position(v1)) / 2.0);
-                // comment calculer la normale ????
-                // Pour l'instant moyenne des 2 normales
                 normals[v] = normalize(normals[v0] + normals[v1]);
                 target_length[v] = target_L;
                 mesh_.split(e, v);
@@ -207,10 +216,12 @@ void MeshProcessing::split_long_edges() {
         cout << "we split " << ctr << " edges" << endl;
     }
 
-    mesh_.garbage_collection();
+    /*  mesh_.garbage_collection();
     mesh_.update_face_normals();
     mesh_.update_vertex_normals();
+    calc_weights(); */
 }
+
 
 void MeshProcessing::collapse_short_edges() {
     Mesh::Vertex v0, v1;
@@ -236,11 +247,11 @@ void MeshProcessing::collapse_short_edges() {
                 target_L = (target_length[v0] + target_length[v1]) / 2;
                 L = norm(mesh_.position(v1) - mesh_.position(v0));
                 if (L < (4.0 / 5.0) * target_L) {
-                    // Are we on boundaries ?
-                    v0_bound = mesh_.is_boundary(v0);
-                    v1_bound = mesh_.is_boundary(v1);
                     // If we can collapse both
                     if (mesh_.is_collapse_ok(h0) && mesh_.is_collapse_ok(h1)) {
+                        // Are we on boundaries ?
+                        v0_bound = mesh_.is_boundary(v0);
+                        v1_bound = mesh_.is_boundary(v1);
                         //If none of the endpoint is boundary
                         if (!v0_bound && !v1_bound) {
                             val0 = mesh_.valence(v0);
@@ -267,9 +278,7 @@ void MeshProcessing::collapse_short_edges() {
                             finished = false;
                         }
                     }
-
                     // If we can collapse only h0
-                    // Check if v1 is not on the boundary
                     else if (mesh_.is_collapse_ok(h0) && !mesh_.is_collapse_ok(h1) && !v1_bound) {
                         finished = false;
                         mesh_.collapse(h0);
@@ -291,8 +300,9 @@ void MeshProcessing::collapse_short_edges() {
 
     }
     mesh_.garbage_collection();
-    mesh_.update_face_normals();
+    /*mesh_.update_face_normals();
     mesh_.update_vertex_normals();
+    calc_weights();*/
     if (i == 100) std::cerr << "collapse break\n";
 }
 
@@ -300,9 +310,31 @@ float sq(float n){
     return n*n;
 }
 
+vector<Mesh::Vertex> MeshProcessing::findCommonNeighbours(Mesh::Vertex v1, Mesh::Vertex v2){
+    vector<Mesh::Vertex> n1, result;
+    Mesh::Vertex_around_vertex_circulator vc, vc_end;
+    vc = mesh_.vertices(v1);
+    vc_end = vc;
+    Mesh::Vertex v;
+    do {
+        v = *vc;
+        n1.push_back(v);
+    } while (++vc != vc_end);
+    vc = mesh_.vertices(v2);
+    vc_end = vc;
+    do {
+        v = *vc;
+        if ( std::find(n1.begin(), n1.end(), v) != n1.end() )
+            result.push_back(v);
+    } while (++vc != vc_end);
+    return result;
+}
+
 void MeshProcessing::equalize_valences() {
+    Mesh::Edge_iterator     e_it, e_end(mesh_.edges_end());
+    Mesh::Edge e;
     Mesh::Vertex v0, v1, v2, v3;
-    Mesh::Halfedge h0, h1, h2, h3;
+    Mesh::Halfedge h, h0, h1, h2, h3;
     int val0, val1, val2, val3;
     int val_opt0, val_opt1, val_opt2, val_opt3;
     int ve0, ve1, ve2, ve3, ve_before, ve_after;
@@ -312,17 +344,21 @@ void MeshProcessing::equalize_valences() {
 
     for (finished = false, i = 0; !finished && i < 100; ++i) {
         finished = true;
-        for (auto e: mesh_.edges()) {
-            if (!mesh_.is_boundary(e) && mesh_.is_flip_ok(e) && !mesh_.is_deleted(e)) {
+        counter = 0;
+        for (e_it=mesh_.edges_begin(); e_it!=e_end; ++e_it) {
+            e = *e_it;
+            if (mesh_.is_flip_ok(e) && !mesh_.is_deleted(e)) { //is flip ok also check if boundary
                 // we access to the 4 vertices by halfedges
-                h0 = mesh_.halfedge(e, 0);
-                h1 = mesh_.halfedge(e, 1);
-                v0 = mesh_.to_vertex(h0);
-                v1 = mesh_.to_vertex(h1);
-                h2 = mesh_.next_halfedge(h0);
+                h = mesh_.halfedge(e, 0);
+                v0 = mesh_.to_vertex(h);
+                v1 = mesh_.from_vertex(h);
+                /*h2 = mesh_.next_halfedge(h0);
                 h3 = mesh_.next_halfedge(h1);
                 v2 = mesh_.to_vertex(h2);
-                v3 = mesh_.to_vertex(h3);
+                v3 = mesh_.to_vertex(h3);  */
+                vector<Mesh::Vertex> tmp = findCommonNeighbours(v0, v1);
+                v2 = tmp[0];
+                v3 = tmp[1];
 
                 // we compute the valences for 4 vertices
                 val0 = mesh_.valence(v0);
@@ -345,7 +381,7 @@ void MeshProcessing::equalize_valences() {
                 // sum of square of deviations for 2 edges
                 ve_before = sq(ve0) + sq(ve1) + sq(ve2) + sq(ve3);
                 ve_after  = sq(ve0-1) + sq(ve1-1) + sq(ve2+1) + sq(ve3+1);
-                if (ve_after < ve_before) {
+                if (mesh_.is_flip_ok(e) && ve_after < ve_before) {
                     mesh_.flip(e);
                     counter++;
                     finished = false;
@@ -354,9 +390,11 @@ void MeshProcessing::equalize_valences() {
         }
         cout << "we equalize " << counter << " vertices" << endl;
     }
+    /*
     mesh_.garbage_collection();
     mesh_.update_face_normals();
     mesh_.update_vertex_normals();
+    calc_weights();*/
     if (i == 100) std::cerr << "flip break\n";
 }
 
@@ -380,9 +418,9 @@ void MeshProcessing::tangential_relaxation() {
                 vc_end = vc;
                 do {
                     neighbors_counter++;
-                    sum += (mesh_.position(*vc) - mesh_.position(v));
+                    sum += mesh_.position(*vc);
                 } while (++vc != vc_end);
-                Lu = sum / float(neighbors_counter);
+                Lu = sum / float(neighbors_counter) - mesh_.position(v);
                 //Computing projection of Lu onto normal plane
                 n = normals[v];
                 dist = dot(n, Lu);
@@ -390,14 +428,119 @@ void MeshProcessing::tangential_relaxation() {
                 update[v] = u;
             }
         }
-        mesh_.update_vertex_normals();
+        //   mesh_.update_vertex_normals();
 
         for (auto v: mesh_.vertices())
             if (!mesh_.is_boundary(v))
                 mesh_.position(v) += update[v];
         cout << "finished tangential relaxation" << endl;
     }
+    /*
+    mesh_.garbage_collection();
+    mesh_.update_face_normals();
+    mesh_.update_vertex_normals();
+    calc_weights();*/
 }
+
+void MeshProcessing::give_thickness() {
+    /*
+     * The goal of this fuction is to transform a surface into a solid.
+     * The solid should have the same shape as surface but with a none infinitely small thickness,
+     * so we could print the shape.
+     *
+     * Algo:
+     * 1) iterate over all vertices and create a new vertex slid down the normal
+     * 2) iterate over all faces and create the same faces for the associated vertex
+     * 3) iterate over boundary edge and create the boder to clos the solid
+     *
+     */
+    const float thickness = 2;
+    Mesh::Vertex_property <Point> vertex_normal = mesh_.vertex_property<Point>("v:normal");
+    Mesh::Vertex_property <Mesh::Vertex> associated_vertex = mesh_.vertex_property<Mesh::Vertex>("v:associated_vertex");
+    Mesh::Vertex_property <bool> is_primary = mesh_.vertex_property<bool>("v:is_primary");
+    // return true if the edge was a boundary edge and we generate the border for this edge
+    Mesh::Edge_property <bool> edge_border_done = mesh_.edge_property<bool>("v:is_edge_border_done");
+
+    /*
+     * Iterate over all vertex and create a new vertex in the oposite direction of the normal
+     * We call this new vertex the associated vertex and we store a link to this
+     */
+    Mesh::Vertex_iterator v_it, v_begin, v_end;
+    v_begin = mesh_.vertices_begin();
+    v_end = mesh_.vertices_end();
+    Point p, normal;
+    Mesh::Vertex assiociated_v;
+
+    for (v_it = v_begin; v_it != v_end; ++v_it) {
+        p = mesh_.position(*v_it);
+        normal = vertex_normal[*v_it];
+        // generate a new vertex
+        assiociated_v = mesh_.add_vertex(p - ( thickness * normal) );
+        associated_vertex[assiociated_v] = (*v_it); // we also bound the new vertex with the "old" one
+        is_primary[assiociated_v] = false;
+        // update the "old" vertex
+        associated_vertex[*v_it] = assiociated_v;
+        is_primary[*v_it] = true;
+    }
+    // the new vertex should not have faces, so we can iterate over all faces and generate a face for the associated vertecies
+    Mesh::Face_iterator f_it, f_begin, f_end;
+    f_begin = mesh_.faces_begin();
+    f_end = mesh_.faces_end();
+    Mesh::Vertex_around_face_circulator vc, vc_end;
+
+    for (f_it = f_begin; f_it != f_end; ++f_it) {
+        Mesh::Face f = *f_it;
+        vc = mesh_.vertices(f);
+        vc_end = vc;
+        Mesh::Vertex associated_vertices[3];
+        int i = 0;
+        do {
+            associated_vertices[i] = associated_vertex[*vc];
+            ++i;
+        } while (++vc != vc_end);
+        mesh_.add_triangle(associated_vertices[0], associated_vertices[1], associated_vertices[2] );
+    }
+    // we iterate over all halfedges and create a face if the halfedge is:
+    // * primary (not generate for thickness)
+    // * boundary
+    // * not allready done
+    Mesh::Vertex from_v, to_v, juxtaposed_v_from, juxtaposed_v_to;
+    Mesh::Halfedge_iterator h_it, h_begin, h_end;
+    h_begin = mesh_.halfedges_begin();
+    h_end = mesh_.halfedges_end();
+    Mesh::Halfedge h;
+    bool is_primary_halfedge = false;
+    int count = 0;
+    for (auto e: mesh_.edges()) {
+        if(mesh_.is_boundary(e)){
+            h = mesh_.halfedge(e, 0);
+            from_v = mesh_.from_vertex(h);
+            to_v = mesh_.to_vertex(h);
+            juxtaposed_v_from = associated_vertex[from_v];
+            juxtaposed_v_to = associated_vertex[to_v];
+            if (is_primary[from_v] && is_primary[to_v]){
+                is_primary_halfedge = true;
+            } else if (! is_primary[from_v] && ! is_primary[to_v]){
+                is_primary_halfedge = false;
+            }  else {
+                throw "a uncorrect halfedge was found!";
+            }
+            if (is_primary_halfedge){
+                e = mesh_.edge(*h_it);
+                if(! edge_border_done[e]){
+                    mesh_.add_triangle( from_v,juxtaposed_v_from, to_v);
+                    mesh_.add_triangle( to_v, juxtaposed_v_to, juxtaposed_v_from); // do not add the face, why?
+                    edge_border_done[e] = true;
+                }
+            }
+        }
+    }
+    cout << "# of vertices : " << mesh_.n_vertices() << endl;
+    cout << "# of faces : " << mesh_.n_faces() << endl;
+    cout << "# of edges : " << mesh_.n_edges() << endl;
+}
+
+
 // ========================================================================
 // EXERCISE 1.1
 // ========================================================================
