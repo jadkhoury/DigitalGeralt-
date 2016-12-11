@@ -108,11 +108,11 @@ bool Viewer::mouseMotionEvent(const Vector2i &p, const Vector2i &rel,
                                                    mesh_center.z),
                                           view * model, proj, mSize).z();
             Eigen::Vector3f pos1 = nanogui::unproject(
-                    Eigen::Vector3f(p.x(), mSize.y() - p.y(), zval),
-                    view * model, proj, mSize);
+                        Eigen::Vector3f(p.x(), mSize.y() - p.y(), zval),
+                        view * model, proj, mSize);
             Eigen::Vector3f pos0 = nanogui::unproject(
-                    Eigen::Vector3f(translateStart_.x(), mSize.y() -
-                                                         translateStart_.y(), zval), view * model, proj, mSize);
+                        Eigen::Vector3f(translateStart_.x(), mSize.y() -
+                                        translateStart_.y(), zval), view * model, proj, mSize);
             camera_.modelTranslation = camera_.modelTranslation_start + (pos1-pos0);
         }
     }
@@ -142,133 +142,143 @@ bool Viewer::mouseButtonEvent(const Vector2i &p, int button, bool down, int modi
 void Viewer::initShaders() {
     // Shaders
     shader_.init(
-            "a_simple_shader",
+                "a_simple_shader",
 
-            /* Vertex shader */
-            "#version 330\n"
-                    "uniform mat4 MV;\n"
-                    "uniform mat4 P;\n"
-                    "uniform int color_mode;\n"
-                    "uniform vec3 intensity;\n"
+                /* Vertex shader */
+                "#version 330\n"
+                "uniform mat4 MV;\n"
+                "uniform mat4 P;\n"
+                "uniform int color_mode;\n"
+                "uniform vec3 intensity;\n"
 
-                    "in vec3 position;\n"
-                    "in vec3 valence_color;\n"
-                    "in vec3 unicruvature_color;\n"
-                    "in vec3 curvature_color;\n"
-                    "in vec3 gaussian_curv_color;\n"
-                    "in vec3 normal;\n"
+                "in vec3 position;\n"
+                "in vec3 valence_color;\n"
+                "in vec3 unicruvature_color;\n"
+                "in vec3 curvature_color;\n"
+                "in vec3 gaussian_curv_color;\n"
+                "in vec3 normal;\n"
 
-                    "out vec3 fcolor;\n"
-                    "out vec3 fnormal;\n"
-                    "out vec3 view_dir;\n"
-                    "out vec3 light_dir;\n"
+                "out vec3 fcolor;\n"
+                "out vec3 fnormal;\n"
+                "out vec3 view_dir;\n"
+                "out vec3 light_dir;\n"
 
-                    "void main() {\n"
-                    "    vec4 vpoint_mv = MV * vec4(position, 1.0);\n"
-                    "    gl_Position = P * vpoint_mv;\n"
-                    "    if (color_mode == 1) {\n"
-                    "        fcolor = valence_color;\n"
-                    "    } else if (color_mode == 2) {\n"
-                    "        fcolor = unicruvature_color;\n"
-                    "    } else if (color_mode == 3) {\n"
-                    "        fcolor = curvature_color;\n"
-                    "    } else if (color_mode == 4) {\n"
-                    "        fcolor = gaussian_curv_color;\n"
-                    "    } else {\n"
-                    "        fcolor = intensity;\n"
-                    "    }\n"
-                    "    fnormal = mat3(transpose(inverse(MV))) * normal;\n"
-                    "    light_dir = vec3(0.0, 3.0, 3.0) - vpoint_mv.xyz;\n"
-                    "    view_dir = -vpoint_mv.xyz;\n"
-                    "}",
+                "void main() {\n"
+                "    vec4 vpoint_mv = MV * vec4(position, 1.0);\n"
+                "    gl_Position = P * vpoint_mv;\n"
+                "    if (color_mode == 1) {\n"
+                "        fcolor = valence_color;\n"
+                "    } else if (color_mode == 2) {\n"
+                "        fcolor = unicruvature_color;\n"
+                "    } else if (color_mode == 3) {\n"
+                "        fcolor = curvature_color;\n"
+                "    } else if (color_mode == 4) {\n"
+                "        fcolor = gaussian_curv_color;\n"
+                "    } else {\n"
+                "        fcolor = intensity;\n"
+                "    }\n"
+                "    fnormal = mat3(transpose(inverse(MV))) * normal;\n"
+                "    light_dir = vec3(0.0, 3.0, 3.0) - vpoint_mv.xyz;\n"
+                "    view_dir = -vpoint_mv.xyz;\n"
+                "}",
 
-            /* Fragment shader */
-            "#version 330\n"
-                    "uniform int color_mode;\n"
-                    "uniform vec3 intensity;\n"
+                /* Fragment shader */
+                "#version 330\n"
+                "uniform int color_mode;\n"
+                "uniform vec3 intensity;\n"
 
-                    "in vec3 fcolor;\n"
-                    "in vec3 fnormal;\n"
-                    "in vec3 view_dir;\n"
-                    "in vec3 light_dir;\n"
+                "in vec3 fcolor;\n"
+                "in vec3 fnormal;\n"
+                "in vec3 view_dir;\n"
+                "in vec3 light_dir;\n"
 
-                    "out vec4 color;\n"
+                "out vec4 color;\n"
 
-                    "void main() {\n"
-                    "    vec3 c = vec3(0.0);\n"
-                    "    if (color_mode == 0) {\n"
-                    "        c += vec3(1.0)*vec3(0.18, 0.1, 0.1);\n"
-                    "        vec3 n = normalize(fnormal);\n"
-                    "        vec3 v = normalize(view_dir);\n"
-                    "        vec3 l = normalize(light_dir);\n"
-                    "        float lambert = dot(n,l);\n"
-                    "        if(lambert > 0.0) {\n"
-                    "            c += vec3(1.0)*vec3(0.9, 0.5, 0.5)*lambert;\n"
-                    "            vec3 v = normalize(view_dir);\n"
-                    "            vec3 r = reflect(-l,n);\n"
-                    "            c += vec3(1.0)*vec3(0.8, 0.8, 0.8)*pow(max(dot(r,v), 0.0), 90.0);\n"
-                    "        }\n"
-                    "        c *= fcolor;\n"
-                    "    } else {\n"
-                    "       c = fcolor;\n"
-                    "    }\n"
-                    "    if (intensity == vec3(0.0)) {\n"
-                    "        c = intensity;\n"
-                    "    }\n"
-                    "    color = vec4(c, 1.0);\n"
-                    "}"
-    );
+                "void main() {\n"
+                "    vec3 c = vec3(0.0);\n"
+                "    if (color_mode == 0) {\n"
+                "        c += vec3(1.0)*vec3(0.18, 0.1, 0.1);\n"
+                "        vec3 n = normalize(fnormal);\n"
+                "        vec3 v = normalize(view_dir);\n"
+                "        vec3 l = normalize(light_dir);\n"
+                "        float lambert = dot(n,l);\n"
+                "        if(lambert > 0.0) {\n"
+                "            c += vec3(1.0)*vec3(0.9, 0.5, 0.5)*lambert;\n"
+                "            vec3 v = normalize(view_dir);\n"
+                "            vec3 r = reflect(-l,n);\n"
+                "            c += vec3(1.0)*vec3(0.8, 0.8, 0.8)*pow(max(dot(r,v), 0.0), 90.0);\n"
+                "        }\n"
+                "        c *= fcolor;\n"
+                "    } else {\n"
+                "       c = fcolor;\n"
+                "    }\n"
+                "    if (intensity == vec3(0.0)) {\n"
+                "        c = intensity;\n"
+                "    }\n"
+                "    color = vec4(c, 1.0);\n"
+                "}"
+                );
 
     shaderNormals_.init(
-            "normal_shader",
-            /* Vertex shader */
-            "#version 330\n\n"
-                    "in vec3 position;\n"
-                    "in vec3 normal;\n"
-                    "uniform mat4 MV;\n"
-                    "uniform mat4 P;\n"
-                    "uniform int normal_selector;\n"
-                    "out VS_OUT {\n"
-                    "    mat3 normal_mat;\n"
-                    "    vec3 normal;\n"
-                    "} vs_out;\n"
-                    "void main() {\n"
-                    "  gl_Position = vec4(position, 1.0);\n"
-                    "    vs_out.normal = normal;\n"
-                    "    vs_out.normal_mat = mat3(transpose(inverse(MV)));\n"
-                    "}",
-            /* Fragment shader */
-            "#version 330\n\n"
-                    "out vec4 frag_color;\n"
-                    "void main() {\n"
-                    "   frag_color = vec4(0.0, 1.0, 0.0, 1.0);\n"
-                    "}",
-            /* Geometry shader */
-            "#version 330\n\n"
-                    "layout (triangles) in;\n"
-                    "layout (line_strip, max_vertices = 6) out;\n"
-                    "uniform mat4 MV;\n"
-                    "uniform mat4 P;\n"
-                    "in VS_OUT {\n"
-                    "    mat3 normal_mat;\n"
-                    "    vec3 normal;\n"
-                    "} gs_in[];\n"
-                    "void createline(int index) {\n"
-                    "   gl_Position = P * MV * gl_in[index].gl_Position;\n"
-                    "   EmitVertex();\n"
-                    "   vec4 normal_mv = vec4(normalize(gs_in[index].normal_mat *\n"
-                    "                                   gs_in[index].normal), 1.0f);\n"
-                    "   gl_Position = P * (MV * gl_in[index].gl_Position\n"
-                    "                      + normal_mv * 0.035f);\n"
-                    "   EmitVertex();\n"
-                    "   EndPrimitive();\n"
-                    "}\n"
-                    "void main() {\n"
-                    "   createline(0);\n"
-                    "   createline(1);\n"
-                    "   createline(2);\n"
-                    "}"
-    );
+                "normal_shader",
+                /* Vertex shader */
+                "#version 330\n\n"
+                "in vec3 position;\n"
+                "in vec3 normal;\n"
+                "uniform mat4 MV;\n"
+                "uniform mat4 P;\n"
+                "uniform int normal_selector;\n"
+                "out VS_OUT {\n"
+                "    mat3 normal_mat;\n"
+                "    vec3 normal;\n"
+                "} vs_out;\n"
+                "void main() {\n"
+                "  gl_Position = vec4(position, 1.0);\n"
+                "    vs_out.normal = normal;\n"
+                "    vs_out.normal_mat = mat3(transpose(inverse(MV)));\n"
+                "}",
+                /* Fragment shader */
+                "#version 330\n\n"
+                "out vec4 frag_color;\n"
+                "void main() {\n"
+                "   frag_color = vec4(0.0, 1.0, 0.0, 1.0);\n"
+                "}",
+                /* Geometry shader */
+                "#version 330\n\n"
+                "layout (triangles) in;\n"
+                "layout (line_strip, max_vertices = 6) out;\n"
+                "uniform mat4 MV;\n"
+                "uniform mat4 P;\n"
+                "in VS_OUT {\n"
+                "    mat3 normal_mat;\n"
+                "    vec3 normal;\n"
+                "} gs_in[];\n"
+                "void createline(int index) {\n"
+                "   gl_Position = P * MV * gl_in[index].gl_Position;\n"
+                "   EmitVertex();\n"
+                "   vec4 normal_mv = vec4(normalize(gs_in[index].normal_mat *\n"
+                "                                   gs_in[index].normal), 1.0f);\n"
+                "   gl_Position = P * (MV * gl_in[index].gl_Position\n"
+                "                      + normal_mv * 0.035f);\n"
+                "   EmitVertex();\n"
+                "   EndPrimitive();\n"
+                "}\n"
+                "void main() {\n"
+                "   createline(0);\n"
+                "   createline(1);\n"
+                "   createline(2);\n"
+                "}"
+                );
+}
+string createName(){
+    time_t rawtime;
+      struct tm * timeinfo;
+      char buffer[80];
+      time (&rawtime);
+      timeinfo = localtime(&rawtime);
+      strftime(buffer,80,"[%d-%m-%Y_%I:%M:%S]",timeinfo);
+      std::string str(buffer);
+      return ("Export_" + str + ".obj");
 }
 
 Viewer::Viewer() : nanogui::Screen(Eigen::Vector2i(1024, 768), "DGP Viewer") {
@@ -297,10 +307,10 @@ Viewer::Viewer() : nanogui::Screen(Eigen::Vector2i(1024, 768), "DGP Viewer") {
     b = new Button(popup, "Open mesh ...");
     b->setCallback([this]() {
         string filename = nanogui::file_dialog({{"obj", "Wavefront OBJ"},
-                                         {"ply", "Stanford PLY"},
-                                         {"aln", "Aligned point cloud"},
-                                         {"off", "Object File Format"}
-                                        }, false);
+                                                {"ply", "Stanford PLY"},
+                                                {"aln", "Aligned point cloud"},
+                                                {"off", "Object File Format"}
+                                               }, false);
         if (filename != "") {
             mesh_->load_mesh(filename);
             this->refresh_mesh();
@@ -319,7 +329,8 @@ Viewer::Viewer() : nanogui::Screen(Eigen::Vector2i(1024, 768), "DGP Viewer") {
     b = new Button(window_, "Export OBJ");
     b->setFlags(Button::RadioButton);
     b->setCallback([this]() {
-        this->mesh_->write_mesh("export.obj");
+        string name = createName();
+        mesh_->write_mesh(name);
     });
     b->setPushed(false);
 
@@ -369,7 +380,7 @@ Viewer::Viewer() : nanogui::Screen(Eigen::Vector2i(1024, 768), "DGP Viewer") {
     ComboBox *c = new ComboBox(window_, remeshing_type);
     c->setCallback([this](int remeshing_type) {
         this->remeshing_type = static_cast<mesh_processing::REMESHING_TYPE>
-                                                                (remeshing_type);
+                (remeshing_type);
     });
 
 

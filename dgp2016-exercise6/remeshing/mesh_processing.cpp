@@ -766,12 +766,11 @@ void MeshProcessing::calc_vertices_weights() {
     }
 }
 void MeshProcessing::write_mesh(const string &filename){
-    cout << "Trying to export mesh" << endl;
     if (!mesh_.write(filename)) {
         std::cerr << "Mesh able to export, exiting." << std::endl;
         exit(-1);
     }
-    cout << "Mesh exported" << endl;
+    cout << "Mesh exported as: " << filename << endl;
 
 }
 
