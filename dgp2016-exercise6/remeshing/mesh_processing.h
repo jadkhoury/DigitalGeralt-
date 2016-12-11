@@ -53,6 +53,7 @@ public:
     void smooth_target_length();
     vector<Mesh::Vertex> findCommonNeighbours(Mesh::Vertex v1, Mesh::Vertex v2);
     void give_thickness();
+    void write_mesh(const string &filename);
 
     void load_mesh(const string& filename);
     void compute_mesh_properties();

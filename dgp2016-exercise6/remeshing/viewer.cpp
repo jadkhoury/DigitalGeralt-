@@ -315,6 +315,14 @@ Viewer::Viewer() : nanogui::Screen(Eigen::Vector2i(1024, 768), "DGP Viewer") {
     b->setChangeCallback([this](bool wireframe) {
         this->wireframe_ =! this->wireframe_;
     });
+    //New button to export mesh
+    b = new Button(window_, "Export OBJ");
+    b->setFlags(Button::RadioButton);
+    b->setCallback([this]() {
+        this->mesh_->write_mesh("export.obj");
+    });
+    b->setPushed(false);
+
     b = new Button(window_, "Normals");
     b->setFlags(Button::ToggleButton);
     b->setChangeCallback([this](bool normals) {
@@ -363,6 +371,7 @@ Viewer::Viewer() : nanogui::Screen(Eigen::Vector2i(1024, 768), "DGP Viewer") {
         this->remeshing_type = static_cast<mesh_processing::REMESHING_TYPE>
                                                                 (remeshing_type);
     });
+
 
     b = new Button(window_, "Remeshing");
     b->setCallback([this]() {
