@@ -42,7 +42,7 @@ void MeshProcessing::remesh(const REMESHING_TYPE &remeshing_type,
     }
 
     //main remeshing loop
-    for (int i = 0; i < 1; ++i) {
+    for (int i = 0; i < 5; ++i) {
         split_long_edges();
         collapse_short_edges();
         equalize_valences();
@@ -80,8 +80,8 @@ void MeshProcessing::calc_target_length(const REMESHING_TYPE &remeshing_type) {
 
     //We comppute the mean and define the max and min length in function of the mean
     mean_length = length / mesh_.n_edges();
-    float max_length = 3.0 * mean_length;
-    float min_length = 0.3 * mean_length;
+    float max_length = 50.0 * mean_length;
+    float min_length =  mean_length;
 
 
     if (remeshing_type == AVERAGE) {
@@ -161,18 +161,19 @@ void MeshProcessing::calc_target_length(const REMESHING_TYPE &remeshing_type) {
 
 
     } else if (remeshing_type == HEIGHT) {
+        int idx = 0; // corrrespond to the axis of the mesh's height
         float max_h = 0.0;
         float min_h = 999999999.9;
         float current_h, normalized_h;
         for(auto v : mesh_.vertices()){
-            auto position = mesh_.position(v);
-            current_h = position[1];
+            auto position = -mesh_.position(v);
+            current_h = position[idx];
             max_h = (current_h > max_h) ? current_h : max_h;
             min_h = (current_h < min_h) ? current_h : min_h;
         }
         for (auto v: mesh_.vertices()){
             auto position = mesh_.position(v);
-            current_h = position[1];
+            current_h = -position[idx];
             normalized_h = (current_h - min_h)/(max_h - min_h);
             target_length[v] = min_length + (max_length - min_length) * normalized_h;
         }
@@ -215,11 +216,6 @@ void MeshProcessing::split_long_edges() {
         }
         cout << "we split " << ctr << " edges" << endl;
     }
-
-    /*  mesh_.garbage_collection();
-    mesh_.update_face_normals();
-    mesh_.update_vertex_normals();
-    calc_weights(); */
 }
 
 
@@ -300,9 +296,6 @@ void MeshProcessing::collapse_short_edges() {
 
     }
     mesh_.garbage_collection();
-    /*mesh_.update_face_normals();
-    mesh_.update_vertex_normals();
-    calc_weights();*/
     if (i == 100) std::cerr << "collapse break\n";
 }
 
@@ -390,11 +383,6 @@ void MeshProcessing::equalize_valences() {
         }
         cout << "we equalize " << counter << " vertices" << endl;
     }
-    /*
-    mesh_.garbage_collection();
-    mesh_.update_face_normals();
-    mesh_.update_vertex_normals();
-    calc_weights();*/
     if (i == 100) std::cerr << "flip break\n";
 }
 
@@ -435,11 +423,6 @@ void MeshProcessing::tangential_relaxation() {
                 mesh_.position(v) += update[v];
         cout << "finished tangential relaxation" << endl;
     }
-    /*
-    mesh_.garbage_collection();
-    mesh_.update_face_normals();
-    mesh_.update_vertex_normals();
-    calc_weights();*/
 }
 
 void MeshProcessing::give_thickness() {
