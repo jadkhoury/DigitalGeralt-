@@ -54,6 +54,7 @@ public:
     vector<Mesh::Vertex> findCommonNeighbours(Mesh::Vertex v1, Mesh::Vertex v2);
     void give_thickness();
     void write_mesh(const string &filename);
+    void convertToWireframe();
 
     void load_mesh(const string& filename);
     void compute_mesh_properties();

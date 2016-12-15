@@ -1,0 +1,580 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+   <FileVersion major="1" minor="6" />
+   <Project>
+      <Option title="NanoGUI" />
+      <Option makefile_is_custom="1" />
+      <Option compiler="gcc" />
+      <Option virtualFolders="CMake Files\;CMake Files\externals\;CMake Files\externals\nanogui\;CMake Files\externals\nanogui\ext\;CMake Files\externals\nanogui\ext\glfw\;CMake Files\externals\nanogui\ext\glfw\src\;CMake Files\externals\surface_mesh\;CMake Files\cmake\;CMake Files\surfaces\;" />
+      <Build>
+      <Target title="all">
+         <Option working_dir="/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui" />
+         <Option type="4" />
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/Makefile&quot;  VERBOSE=1 all" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="bin2c">
+         <Option output="/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/bin2c" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui" />
+         <Option object_output="./" />
+         <Option type="1" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add option="-DCORO_SJLJ" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/coro" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/eigen" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/include" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/nanovg/src" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include" />
+            <Add directory="/usr/include" />
+            <Add directory="/usr/include/c++/5" />
+            <Add directory="/usr/include/c++/5/backward" />
+            <Add directory="/usr/include/x86_64-linux-gnu" />
+            <Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+            <Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+            <Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+            <Add directory="/usr/local/include" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/Makefile&quot;  VERBOSE=1 bin2c" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="bin2c/fast">
+         <Option output="/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/bin2c" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui" />
+         <Option object_output="./" />
+         <Option type="1" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add option="-DCORO_SJLJ" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/coro" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/eigen" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/include" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/nanovg/src" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include" />
+            <Add directory="/usr/include" />
+            <Add directory="/usr/include/c++/5" />
+            <Add directory="/usr/include/c++/5/backward" />
+            <Add directory="/usr/include/x86_64-linux-gnu" />
+            <Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+            <Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+            <Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+            <Add directory="/usr/local/include" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/Makefile&quot;  VERBOSE=1 bin2c/fast" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="nanogui">
+         <Option output="/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/libnanogui.a" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui" />
+         <Option object_output="./" />
+         <Option type="2" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add option="-DNANOGUI_BUILD" />
+            <Add option="-DCORO_SJLJ" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/coro" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/eigen" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/include" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/nanovg/src" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include" />
+            <Add directory="/usr/include" />
+            <Add directory="/usr/include/c++/5" />
+            <Add directory="/usr/include/c++/5/backward" />
+            <Add directory="/usr/include/x86_64-linux-gnu" />
+            <Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+            <Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+            <Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+            <Add directory="/usr/local/include" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/Makefile&quot;  VERBOSE=1 nanogui" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="nanogui/fast">
+         <Option output="/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/libnanogui.a" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui" />
+         <Option object_output="./" />
+         <Option type="2" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add option="-DNANOGUI_BUILD" />
+            <Add option="-DCORO_SJLJ" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/coro" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/eigen" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/include" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/nanovg/src" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include" />
+            <Add directory="/usr/include" />
+            <Add directory="/usr/include/c++/5" />
+            <Add directory="/usr/include/c++/5/backward" />
+            <Add directory="/usr/include/x86_64-linux-gnu" />
+            <Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+            <Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+            <Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+            <Add directory="/usr/local/include" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/Makefile&quot;  VERBOSE=1 nanogui/fast" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="glfw_objects">
+         <Option output="/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/ext_build/glfw/src/CMakeFiles/glfw_objects.dir/glfw_objects.objlib" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/ext_build/glfw/src" />
+         <Option object_output="./" />
+         <Option type="2" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add option="-D_GLFW_USE_CONFIG_H" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/ext_build/glfw/src" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/include" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src" />
+            <Add directory="/usr/include" />
+            <Add directory="/usr/include/c++/5" />
+            <Add directory="/usr/include/c++/5/backward" />
+            <Add directory="/usr/include/x86_64-linux-gnu" />
+            <Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+            <Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+            <Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+            <Add directory="/usr/local/include" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/ext_build/glfw/src/Makefile&quot;  VERBOSE=1 glfw_objects" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/ext_build/glfw/src/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/ext_build/glfw/src/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/ext_build/glfw/src/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="glfw_objects/fast">
+         <Option output="/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/ext_build/glfw/src/CMakeFiles/glfw_objects.dir/glfw_objects.objlib" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/ext_build/glfw/src" />
+         <Option object_output="./" />
+         <Option type="2" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add option="-D_GLFW_USE_CONFIG_H" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/ext_build/glfw/src" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/include" />
+            <Add directory="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src" />
+            <Add directory="/usr/include" />
+            <Add directory="/usr/include/c++/5" />
+            <Add directory="/usr/include/c++/5/backward" />
+            <Add directory="/usr/include/x86_64-linux-gnu" />
+            <Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+            <Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+            <Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+            <Add directory="/usr/local/include" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/ext_build/glfw/src/Makefile&quot;  VERBOSE=1 glfw_objects/fast" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/ext_build/glfw/src/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/ext_build/glfw/src/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/ext_build/glfw/src/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="glfw">
+         <Option output="/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/ext_build/glfw/src/libglfw3.a" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/ext_build/glfw/src" />
+         <Option object_output="./" />
+         <Option type="2" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add directory="/usr/include" />
+            <Add directory="/usr/include/c++/5" />
+            <Add directory="/usr/include/c++/5/backward" />
+            <Add directory="/usr/include/x86_64-linux-gnu" />
+            <Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+            <Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+            <Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+            <Add directory="/usr/local/include" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/ext_build/glfw/src/Makefile&quot;  VERBOSE=1 glfw" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/ext_build/glfw/src/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/ext_build/glfw/src/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/ext_build/glfw/src/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="glfw/fast">
+         <Option output="/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/ext_build/glfw/src/libglfw3.a" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/ext_build/glfw/src" />
+         <Option object_output="./" />
+         <Option type="2" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add directory="/usr/include" />
+            <Add directory="/usr/include/c++/5" />
+            <Add directory="/usr/include/c++/5/backward" />
+            <Add directory="/usr/include/x86_64-linux-gnu" />
+            <Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+            <Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+            <Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+            <Add directory="/usr/local/include" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/ext_build/glfw/src/Makefile&quot;  VERBOSE=1 glfw/fast" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/ext_build/glfw/src/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/ext_build/glfw/src/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/ext_build/glfw/src/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      </Build>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/nanogui/ext_build/glfw/src/glfw_config.h">
+         <Option target="glfw_objects"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/include/GLFW/glfw3.h">
+         <Option target="glfw_objects"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/include/GLFW/glfw3native.h">
+         <Option target="glfw_objects"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/context.c">
+         <Option target="glfw_objects"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/egl_context.c">
+         <Option target="glfw_objects"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/egl_context.h">
+         <Option target="glfw_objects"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/glx_context.c">
+         <Option target="glfw_objects"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/glx_context.h">
+         <Option target="glfw_objects"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/init.c">
+         <Option target="glfw_objects"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/input.c">
+         <Option target="glfw_objects"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/internal.h">
+         <Option target="glfw_objects"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/linux_joystick.c">
+         <Option target="glfw_objects"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/linux_joystick.h">
+         <Option target="glfw_objects"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/monitor.c">
+         <Option target="glfw_objects"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/posix_time.c">
+         <Option target="glfw_objects"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/posix_time.h">
+         <Option target="glfw_objects"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/posix_tls.c">
+         <Option target="glfw_objects"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/posix_tls.h">
+         <Option target="glfw_objects"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/vulkan.c">
+         <Option target="glfw_objects"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/window.c">
+         <Option target="glfw_objects"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/x11_init.c">
+         <Option target="glfw_objects"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/x11_monitor.c">
+         <Option target="glfw_objects"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/x11_platform.h">
+         <Option target="glfw_objects"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/x11_window.c">
+         <Option target="glfw_objects"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/xkb_unicode.c">
+         <Option target="glfw_objects"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/xkb_unicode.h">
+         <Option target="glfw_objects"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/nanovg/src/nanovg.c">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/nanovg/src/nanovg.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/button.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/checkbox.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/colorpicker.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/colorwheel.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/combobox.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/common.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/formhelper.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/glutil.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/graph.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/imagepanel.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/imageview.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/label.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/layout.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/messagedialog.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/nanogui.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/opengl.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/popup.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/popupbutton.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/progressbar.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/screen.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/serializer/core.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/serializer/opengl.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/serializer/sparse.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/slider.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/stackedwidget.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/tabheader.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/tabwidget.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/textbox.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/theme.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/toolbutton.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/vscrollpanel.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/widget.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/include/nanogui/window.h">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/resources/bin2c.c">
+         <Option target="bin2c"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/src/button.cpp">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/src/checkbox.cpp">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/src/colorpicker.cpp">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/src/colorwheel.cpp">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/src/combobox.cpp">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/src/common.cpp">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/src/glutil.cpp">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/src/graph.cpp">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/src/imagepanel.cpp">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/src/imageview.cpp">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/src/label.cpp">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/src/layout.cpp">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/src/messagedialog.cpp">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/src/popup.cpp">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/src/popupbutton.cpp">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/src/progressbar.cpp">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/src/screen.cpp">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/src/serializer.cpp">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/src/slider.cpp">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/src/stackedwidget.cpp">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/src/tabheader.cpp">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/src/tabwidget.cpp">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/src/textbox.cpp">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/src/theme.cpp">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/src/vscrollpanel.cpp">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/src/widget.cpp">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/src/window.cpp">
+         <Option target="nanogui"/>
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/CMakeLists.txt">
+          <Option virtualFolder="CMake Files\" />
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/CMakeLists.txt">
+          <Option virtualFolder="CMake Files\externals\nanogui\" />
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/CMakeLists.txt">
+          <Option virtualFolder="CMake Files\externals\nanogui\" />
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/CMakeLists.txt">
+          <Option virtualFolder="CMake Files\externals\nanogui\ext\glfw\" />
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/CMakeLists.txt">
+          <Option virtualFolder="CMake Files\externals\nanogui\ext\glfw\" />
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/CMakeLists.txt">
+          <Option virtualFolder="CMake Files\externals\nanogui\ext\glfw\" />
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/glfw3Config.cmake.in">
+          <Option virtualFolder="CMake Files\externals\nanogui\ext\glfw\src\" />
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/glfw_config.h.in">
+          <Option virtualFolder="CMake Files\externals\nanogui\ext\glfw\src\" />
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/glfw3.pc.in">
+          <Option virtualFolder="CMake Files\externals\nanogui\ext\glfw\src\" />
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/CMakeLists.txt">
+          <Option virtualFolder="CMake Files\externals\nanogui\ext\glfw\src\" />
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/glfw3Config.cmake.in">
+          <Option virtualFolder="CMake Files\externals\nanogui\ext\glfw\src\" />
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/glfw_config.h.in">
+          <Option virtualFolder="CMake Files\externals\nanogui\ext\glfw\src\" />
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/glfw3.pc.in">
+          <Option virtualFolder="CMake Files\externals\nanogui\ext\glfw\src\" />
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/CMakeLists.txt">
+          <Option virtualFolder="CMake Files\externals\nanogui\ext\glfw\src\" />
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/glfw3Config.cmake.in">
+          <Option virtualFolder="CMake Files\externals\nanogui\ext\glfw\src\" />
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/glfw_config.h.in">
+          <Option virtualFolder="CMake Files\externals\nanogui\ext\glfw\src\" />
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/glfw3.pc.in">
+          <Option virtualFolder="CMake Files\externals\nanogui\ext\glfw\src\" />
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/nanogui/ext/glfw/src/CMakeLists.txt">
+          <Option virtualFolder="CMake Files\externals\nanogui\ext\glfw\src\" />
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/externals/surface_mesh/CMakeLists.txt">
+          <Option virtualFolder="CMake Files\externals\surface_mesh\" />
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/cmake/ConfigureCompiler.cmake">
+          <Option virtualFolder="CMake Files\cmake\" />
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/cmake/FindNanoGUI.cmake">
+          <Option virtualFolder="CMake Files\cmake\" />
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/cmake/FindSurfaceMesh.cmake">
+          <Option virtualFolder="CMake Files\cmake\" />
+      </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise3/surfaces/CMakeLists.txt">
+          <Option virtualFolder="CMake Files\surfaces\" />
+      </Unit>
+   </Project>
+</CodeBlocks_project_file>

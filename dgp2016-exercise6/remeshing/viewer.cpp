@@ -333,6 +333,13 @@ Viewer::Viewer() : nanogui::Screen(Eigen::Vector2i(1024, 768), "DGP Viewer") {
         mesh_->write_mesh(name);
     });
     b->setPushed(false);
+    //New button to compute wireframe mesh
+    b = new Button(window_, "to Wireframe");
+    b->setFlags(Button::RadioButton);
+    b->setCallback([this]() {
+        mesh_->convertToWireframe();
+    });
+    b->setPushed(false);
 
     b = new Button(window_, "Normals");
     b->setFlags(Button::ToggleButton);

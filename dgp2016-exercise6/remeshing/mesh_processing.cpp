@@ -529,6 +529,69 @@ void MeshProcessing::give_thickness() {
 // ========================================================================
 
 
+void MeshProcessing::convertToWireframe(){
+    Mesh::Vertex_around_face_circulator vc, vc_end;
+    Mesh::Vertex originals[3], news[3], middles[3];
+    Mesh::Vertex c;
+    Point center, oi, oj, midpos, newpos, to_center;
+    Mesh::Face test;
+    int i, j;
+    float t, min_dist;
+    int counter = -1;
+    for(auto f: mesh_.faces()){
+        counter ++;
+        bool b = counter < 10;
+        vc = mesh_.vertices(f);
+        vc_end = vc;
+        center = Point(0.0, 0.0, 0.0);
+        min_dist = 999.9;
+
+        //first we fill the array of original vertices
+        i = 0;
+        do{
+            originals[i] = *vc;
+            center += mesh_.position(*vc);
+            ++i;
+        }while(++vc != vc_end);
+        mesh_.delete_face(f);
+        center /= 3.0;
+        c = mesh_.add_vertex(center);
+        //We compute the adaptive thickness
+        float d;
+        for(auto o: originals){
+            d = distance(mesh_.position(o), center);
+            min_dist = (d < min_dist) ? d : min_dist;
+        }
+        t = min_dist / 3.0;
+
+        //We fill the middles and news vertex arrays
+        for(i=0; i<3; ++i){
+
+            j = (i+1)%3;
+            oi = mesh_.position(originals[i]);
+            oj = mesh_.position(originals[j]);
+            to_center = normalize(center - oi);
+            midpos = (oi + oj)/2.0;
+            newpos = oi + to_center * t;
+            middles[i] = mesh_.add_vertex(midpos);
+            news[i] = mesh_.add_vertex(newpos);
+        }
+
+        //We add the new triangles
+        for(i=0; i<3; ++i){
+            j = (i+1)%3;
+            mesh_.add_triangle(originals[j], originals[i],  c);
+            //mesh_.add_triangle(middles[i], news[i], news[j]);
+            //mesh_.add_triangle(middles[i], originals[j], news[i]);
+        }
+    }
+
+    mesh_.garbage_collection();
+    mesh_.update_face_normals();
+    mesh_.update_vertex_normals();
+    cout << "DONE" << endl;
+}
+
 
 void MeshProcessing::calc_uniform_mean_curvature() {
     Mesh::Vertex_property <Scalar> v_unicurvature = mesh_.vertex_property<Scalar>("v:unicurvature", 0);
