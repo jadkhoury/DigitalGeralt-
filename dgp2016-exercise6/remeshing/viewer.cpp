@@ -325,6 +325,16 @@ Viewer::Viewer() : nanogui::Screen(Eigen::Vector2i(1024, 768), "DGP Viewer") {
     b->setChangeCallback([this](bool wireframe) {
         this->wireframe_ =! this->wireframe_;
     });
+
+
+    b = new Button(window_, "starify");
+    b->setCallback([this]() {
+        this->mesh_->stars();
+        this->mesh_->compute_mesh_properties();
+        this->refresh_mesh();
+    });
+
+
     //New button to export mesh
     b = new Button(window_, "Export OBJ");
     b->setFlags(Button::RadioButton);

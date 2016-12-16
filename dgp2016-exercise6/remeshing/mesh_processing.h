@@ -63,7 +63,10 @@ public:
     void calc_uniform_mean_curvature();
     void calc_gauss_curvature();
 
-private:
+    void stars();
+    void add_spearhead(Mesh &mesh_temp, Mesh::Vertex v0, Mesh::Vertex v1, Mesh::Vertex v2);
+
+        private:
     void calc_weights();
     void calc_edges_weights();
     void calc_vertices_weights();

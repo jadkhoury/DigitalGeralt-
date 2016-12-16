@@ -529,6 +529,84 @@ void MeshProcessing::give_thickness() {
 // ========================================================================
 
 
+
+
+    void MeshProcessing::add_spearhead(Mesh &mesh_temp, Mesh::Vertex v0, Mesh::Vertex v1, Mesh::Vertex v2)
+    {
+
+        Mesh::Vertex middle;
+
+        Point p_middle = (mesh_temp.position(v0) + mesh_temp.position(v1) + mesh_temp.position(v2) ) / 3.0;
+        middle = mesh_temp.add_vertex(p_middle);
+
+        mesh_temp.add_triangle(middle, v0, v1);
+        mesh_temp.add_triangle(middle, v2, v0);
+
+
+
+    }
+
+    void MeshProcessing::stars() {
+
+        Mesh new_mesh; // we create a new mesh and replace the old one at the end
+        Mesh::Vertex center, ext0, ext1, middle, start, temp;
+
+        Mesh::Vertex_around_vertex_circulator vc, vc_next, vc_end;
+
+        Mesh::Vertex_property <bool> is_stared =
+                mesh_.vertex_property<bool>("v:is_started", false);
+
+
+        // iterate over all vertices
+        for (auto v_it : mesh_.vertices()) {
+
+            // create a star with this point as center if not already in a star or is at boundary
+            if (!mesh_.is_boundary(v_it) and ! is_stared[v_it]) {
+
+                vc = mesh_.vertices(v_it);
+                vc_next = vc;
+                vc_end = vc;
+
+                center = new_mesh.add_vertex( mesh_.position(v_it));
+
+                start = new_mesh.add_vertex( mesh_.position(*vc) ); // init use in the last circulation
+                ext0 = start; // init use in the first circulation
+                do {
+                    ++vc_next; // always one step forward
+                    // we always create the vertex in the vertex for vc_next, just for the last circulation the vertex is already created (start)
+                    if (vc_next == vc_end ){
+                        ext1 = start;
+                    }else {
+                        ext1 = new_mesh.add_vertex( mesh_.position(*vc_next) );
+                    }
+
+                    add_spearhead(new_mesh, center, ext0, ext1);
+
+                    is_stared[*vc] = true;
+                    ext0 = ext1;
+                }while( ++vc != vc_end);
+
+                is_stared[v_it];
+            }
+
+
+        }
+
+        std::cout << "#faces" << new_mesh.n_faces() << std::endl;
+        std::cout << "#vertices" << new_mesh.n_vertices() << std::endl;
+
+        mesh_ = new_mesh;
+
+    }
+
+
+
+
+
+
+
+
+
 void MeshProcessing::convertToWireframe(){
     Mesh::Vertex_around_face_circulator vc, vc_end;
     Mesh::Vertex originals[3], news[3], middles[3];
