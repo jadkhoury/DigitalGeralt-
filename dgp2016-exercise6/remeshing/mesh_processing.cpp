@@ -580,9 +580,9 @@ void MeshProcessing::convertToWireframe(){
         //We add the new triangles
         for(i=0; i<3; ++i){
             j = (i+1)%3;
-            mesh_.add_triangle(originals[i], news[i], middles[i]);
-            mesh_.add_triangle(middles[i], news[i], news[j]);
-            mesh_.add_triangle(middles[i], originals[j], news[i]);
+            mesh_.add_triangle(originals[i], middles[i], news[i]);
+            mesh_.add_triangle(middles[i], news[j], news[i]);
+            mesh_.add_triangle(middles[i], originals[j], news[j]);
         }
     }
     mesh_.garbage_collection();
