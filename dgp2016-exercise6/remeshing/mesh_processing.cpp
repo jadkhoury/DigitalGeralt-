@@ -555,7 +555,7 @@ void MeshProcessing::convertToWireframe(){
         }while(++vc != vc_end);
         mesh_.delete_face(f);
         center /= 3.0;
-        c = mesh_.add_vertex(center);
+        //c = mesh_.add_vertex(center);
         //We compute the adaptive thickness
         float d;
         for(auto o: originals){
@@ -580,15 +580,12 @@ void MeshProcessing::convertToWireframe(){
         //We add the new triangles
         for(i=0; i<3; ++i){
             j = (i+1)%3;
-            mesh_.add_triangle(originals[j], originals[i],  c);
-            //mesh_.add_triangle(middles[i], news[i], news[j]);
-            //mesh_.add_triangle(middles[i], originals[j], news[i]);
+            mesh_.add_triangle(originals[i], news[i], middles[i]);
+            mesh_.add_triangle(middles[i], news[i], news[j]);
+            mesh_.add_triangle(middles[i], originals[j], news[i]);
         }
     }
-
     mesh_.garbage_collection();
-    mesh_.update_face_normals();
-    mesh_.update_vertex_normals();
     cout << "DONE" << endl;
 }
 
@@ -882,11 +879,16 @@ void MeshProcessing::compute_mesh_properties() {
             mesh_.vertex_property<Scalar>("v:curvature", 0.0f);
     Mesh::Vertex_property <Scalar> v_gauss_curvature =
             mesh_.vertex_property<Scalar>("v:gauss_curvature", 0.0f);
+    cout << "test 1 " << endl;
 
     calc_weights();
+    cout << "test 2 " << endl;
     calc_uniform_mean_curvature();
+    cout << "test  3" << endl;
     calc_mean_curvature();
+    cout << "test  4" << endl;
     calc_gauss_curvature();
+    cout << "test 5 " << endl;
     color_coding(vertex_valence, &mesh_, v_color_valence, 3 /* min */,
                  8 /* max */);
     color_coding(v_unicurvature, &mesh_, v_color_unicurvature);
@@ -899,6 +901,7 @@ void MeshProcessing::compute_mesh_properties() {
 
     // Create big matrices to send the data to the GPU with the required
     // format
+    cout << "test 6 " << endl;
     color_valence_ = Eigen::MatrixXf(3, n_vertices);
     color_unicurvature_ = Eigen::MatrixXf(3, n_vertices);
     color_curvature_ = Eigen::MatrixXf(3, n_vertices);
@@ -907,6 +910,7 @@ void MeshProcessing::compute_mesh_properties() {
     points_ = Eigen::MatrixXf(3, n_vertices);
     indices_ = MatrixXu(3, mesh_.n_faces());
 
+    cout << "test 7 " << endl;
     for (auto f: mesh_.faces()) {
         std::vector<float> vv(3);
         int k = 0;
@@ -919,6 +923,7 @@ void MeshProcessing::compute_mesh_properties() {
     }
 
     j = 0;
+    cout << "test 8 " << endl;
     for (auto v: mesh_.vertices()) {
         points_.col(j) << mesh_.position(v).x,
                 mesh_.position(v).y,
