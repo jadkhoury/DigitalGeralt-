@@ -22,7 +22,12 @@ using std::min;
 using std::max;
 using std::cout;
 using std::endl;
+using std::pair;
+using std::make_pair;
 using std::vector;
+Point direction = Point(1.0, 0.0, 0.0);
+
+
 MeshProcessing::MeshProcessing(const string &filename) {
     load_mesh(filename);
 }
@@ -32,7 +37,7 @@ MeshProcessing::~MeshProcessing() {
 bool first = true;
 void MeshProcessing::remesh(const REMESHING_TYPE &remeshing_type,
                             const int &num_iterations) {
-    if(first){
+    if(true){
         calc_weights();
         calc_mean_curvature();
         calc_uniform_mean_curvature();
@@ -89,9 +94,9 @@ void MeshProcessing::calc_target_length(const REMESHING_TYPE &remeshing_type) {
         for (auto v: mesh_.vertices()) {
             target_length[v] = mean_length;
         }
-
+#define FACTOR
 #ifdef FACTOR
-        float factor = 1.0;
+        float factor = 3.0;
         for (auto v:mesh_.vertices()) {
             target_length[v] *= factor;
         }
@@ -131,7 +136,6 @@ void MeshProcessing::calc_target_length(const REMESHING_TYPE &remeshing_type) {
         float total_mean;
         int neigh_ctr;
         Mesh::Vertex current_neighbour;
-
         for (int i = 0; i < 1; i++) {
             for (auto v: mesh_.vertices()) {
 
@@ -158,22 +162,21 @@ void MeshProcessing::calc_target_length(const REMESHING_TYPE &remeshing_type) {
 
         }
 
-
-
     } else if (remeshing_type == HEIGHT) {
-        int idx = 0; // corrrespond to the axis of the mesh's height
         float max_h = 0.0;
         float min_h = 999999999.9;
         float current_h, normalized_h;
+        //compute the min and max height
         for(auto v : mesh_.vertices()){
-            auto position = -mesh_.position(v);
-            current_h = position[idx];
+            auto position = mesh_.position(v);
+            current_h = dot(position, direction);
             max_h = (current_h > max_h) ? current_h : max_h;
             min_h = (current_h < min_h) ? current_h : min_h;
         }
+        //Compute target length of current v in function of its height and max/min height
         for (auto v: mesh_.vertices()){
             auto position = mesh_.position(v);
-            current_h = -position[idx];
+            current_h = dot(position, direction);
             normalized_h = (current_h - min_h)/(max_h - min_h);
             target_length[v] = min_length + (max_length - min_length) * normalized_h;
         }
@@ -525,67 +528,144 @@ void MeshProcessing::give_thickness() {
 
 
 // ========================================================================
-// EXERCISE 1.1
+// WIREFRAME
 // ========================================================================
+/*
+//compute length of 3d vector (implemented in GLM but not imported in this project)
+float length(Point p){
+    return std::sqrt(p[0]*p[0] + p[1]*p[1] + p[2]*p[2]);
+}
 
+//compute triangle area
+float compute_area(Point p0, Point p1, Point p2){
+    return 0.5f * length(cross(p1-p0, p2-p0));
+}
 
-void MeshProcessing::convertToWireframe(){
+//Function that compute the area of all the faces in the mesh & returns the max area
+//Area stored in face property "f:area"
+float MeshProcessing::computeAllFaceArea(){
+    Mesh::Face_property<float> f_area;
+    if(!mesh_.face_property<float>("f:area")){
+        f_area = mesh_.add_face_property<float>("f:area");
+    } else {
+        f_area = mesh_.face_property<float>("f:area", 0.0);
+    }
     Mesh::Vertex_around_face_circulator vc, vc_end;
-    Mesh::Vertex originals[3], news[3], middles[3];
-    Mesh::Vertex c;
-    Point center, oi, oj, midpos, newpos, to_center;
-    Mesh::Face test;
-    int i, j;
-    float t, min_dist;
-    int counter = -1;
+    Point pos[3];
+    float max = 0.0;
+    float area = 0.0;
+    int idx;
     for(auto f: mesh_.faces()){
-        counter ++;
-        bool b = counter < 10;
+        idx = 0;
         vc = mesh_.vertices(f);
         vc_end = vc;
-        center = Point(0.0, 0.0, 0.0);
-        min_dist = 999.9;
-
-        //first we fill the array of original vertices
-        i = 0;
+        //Get the 3 vertex position around face
         do{
-            originals[i] = *vc;
-            center += mesh_.position(*vc);
-            ++i;
+            pos[idx] = mesh_.position(*vc);
+            ++idx;
         }while(++vc != vc_end);
-        mesh_.delete_face(f);
-        center /= 3.0;
-        //c = mesh_.add_vertex(center);
-        //We compute the adaptive thickness
-        float d;
-        for(auto o: originals){
-            d = distance(mesh_.position(o), center);
-            min_dist = (d < min_dist) ? d : min_dist;
-        }
-        t = min_dist / 3.0;
+        //Compute area and update max if needed
+        area = compute_area(pos[0], pos[1], pos[2]);
+        f_area[f] = area;
+        max = (area > max) ? area : max;
+    }
+    return max;
+}
+*/
 
-        //We fill the middles and news vertex arrays
-        for(i=0; i<3; ++i){
+//Function that compute the area of all the faces in the mesh & returns the max area
+//Area stored in face property "f:area"
+pair<float, float> MeshProcessing::computeAllFaceHeight(){
+    Mesh::Vertex_property<float> v_height = mesh_.vertex_property<float>("v:height");
+    float sum, mean;
+    float max = 0.0, min = 99999.9;
+    Mesh::Face_property<float> f_height = mesh_.face_property<float>("f:height");
+    Point pos;
+    Mesh::Vertex v;
+    Mesh::Vertex_around_face_circulator vc, vc_end;
+    for(auto f: mesh_.faces()){
+        sum = 0.0;
+        vc = mesh_.vertices(f);
+        vc_end = vc;
+        do{
+            pos = mesh_.position(*vc);
+            sum += dot(pos, direction);
+        }while(++vc != vc_end);
+        mean = sum/3.0;
+        max = (mean > max) ? mean : max;
+        min = (mean < min) ? mean : min;
+        f_height[f] = mean;
+    }
+    return make_pair(min, max);
 
-            j = (i+1)%3;
-            oi = mesh_.position(originals[i]);
-            oj = mesh_.position(originals[j]);
-            to_center = normalize(center - oi);
-            midpos = (oi + oj)/2.0;
-            newpos = oi + to_center * t;
-            middles[i] = mesh_.add_vertex(midpos);
-            news[i] = mesh_.add_vertex(newpos);
-        }
+}
 
-        //We add the new triangles
-        for(i=0; i<3; ++i){
-            j = (i+1)%3;
-            mesh_.add_triangle(originals[i], middles[i], news[i]);
-            mesh_.add_triangle(middles[i], news[j], news[i]);
-            mesh_.add_triangle(middles[i], originals[j], news[j]);
+void MeshProcessing::convertToWireframe(){
+    Mesh::Face_property<float> f_height = mesh_.face_property<float>("f:height");
+    Mesh::Vertex_around_face_circulator vc, vc_end;
+    Mesh::Vertex originals[3], new_points[3], middle_points[3];
+    Point center, oi, oj, midpos, newpos, to_center;
+    int i, j;
+    float t, min_dist;
+    pair<float, float> min_max = computeAllFaceHeight();
+    float min = min_max.first;
+    float max = min_max.second;
+    for(auto current_f: mesh_.faces()){
+        if((f_height[current_f] - min) > 0.5*(max-min)){
+            //We prepare the current face variables
+            vc = mesh_.vertices(current_f);
+            vc_end = vc;
+            center = Point(0.0, 0.0, 0.0);
+            min_dist = 999.9;
+
+            //Firs, we fill the array of original vertices and compute the center
+            i = 0;
+            do{
+                originals[i] = *vc;
+                center += mesh_.position(*vc);
+                ++i;
+            }while(++vc != vc_end);
+            center /= 3.0;
+            mesh_.delete_face(current_f);
+
+            //We compute the adaptive thickness
+            float d;
+            for(auto o: originals){
+                d = distance(mesh_.position(o), center);
+                min_dist = (d < min_dist) ? d : min_dist;
+            }
+            t = min_dist / 3.0;
+
+            //We fill the middles and news vertex arrays
+            for(i=0; i<3; ++i){
+
+                j = (i+1)%3;
+                oi = mesh_.position(originals[i]);
+                oj = mesh_.position(originals[j]);
+                to_center = normalize(center - oi);
+                midpos = (oi + oj)/2.0;
+                newpos = oi + to_center * t;
+                middle_points[i] = mesh_.add_vertex(midpos);
+                new_points[i] = mesh_.add_vertex(newpos);
+            }
+
+            //We add the new triangles
+            for(i=0; i<3; ++i){
+                j = (i+1)%3;
+                mesh_.add_triangle(originals[i], middle_points[i], new_points[i]);
+                mesh_.add_triangle(middle_points[i], new_points[j], new_points[i]);
+                mesh_.add_triangle(middle_points[i], originals[j], new_points[j]);
+            }
         }
     }
     mesh_.garbage_collection();
+    float tmp = 999.9;
+    Point p;
+    for (auto v: mesh_.vertices()){
+        p = mesh_.position(v);
+       tmp = (p[1] < tmp) ? p[1] : tmp;
+    }
+    cout << "min hauteur: " << tmp << endl;
     cout << "DONE" << endl;
 }
 
@@ -879,16 +959,11 @@ void MeshProcessing::compute_mesh_properties() {
             mesh_.vertex_property<Scalar>("v:curvature", 0.0f);
     Mesh::Vertex_property <Scalar> v_gauss_curvature =
             mesh_.vertex_property<Scalar>("v:gauss_curvature", 0.0f);
-    cout << "test 1 " << endl;
 
     calc_weights();
-    cout << "test 2 " << endl;
     calc_uniform_mean_curvature();
-    cout << "test  3" << endl;
     calc_mean_curvature();
-    cout << "test  4" << endl;
     calc_gauss_curvature();
-    cout << "test 5 " << endl;
     color_coding(vertex_valence, &mesh_, v_color_valence, 3 /* min */,
                  8 /* max */);
     color_coding(v_unicurvature, &mesh_, v_color_unicurvature);
@@ -901,7 +976,6 @@ void MeshProcessing::compute_mesh_properties() {
 
     // Create big matrices to send the data to the GPU with the required
     // format
-    cout << "test 6 " << endl;
     color_valence_ = Eigen::MatrixXf(3, n_vertices);
     color_unicurvature_ = Eigen::MatrixXf(3, n_vertices);
     color_curvature_ = Eigen::MatrixXf(3, n_vertices);
@@ -910,7 +984,6 @@ void MeshProcessing::compute_mesh_properties() {
     points_ = Eigen::MatrixXf(3, n_vertices);
     indices_ = MatrixXu(3, mesh_.n_faces());
 
-    cout << "test 7 " << endl;
     for (auto f: mesh_.faces()) {
         std::vector<float> vv(3);
         int k = 0;
@@ -923,7 +996,6 @@ void MeshProcessing::compute_mesh_properties() {
     }
 
     j = 0;
-    cout << "test 8 " << endl;
     for (auto v: mesh_.vertices()) {
         points_.col(j) << mesh_.position(v).x,
                 mesh_.position(v).y,

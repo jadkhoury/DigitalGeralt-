@@ -1,1 +1,0 @@
-/usr/bin/g++    -std=c++11 -w -O3 -DNDEBUG   CMakeFiles/surfaces.dir/surfaces.cpp.o  -o surfaces -rdynamic ../externals/surface_mesh/libsurface_mesh.so.1.0 ../nanogui/libnanogui.a -lGL -lXxf86vm -lXrandr -lXinerama -lXcursor -lXi -lX11 -lpthread -lrt -ldl -Wl,-rpath,/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise3-Desktop-Default/externals/surface_mesh 

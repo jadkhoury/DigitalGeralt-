@@ -423,6 +423,9 @@
       <Unit filename="/home/jad/Documents/DigitalGeralt-/build-dgp2016-exercise6-Desktop-Default/nanogui/ext_build/glfw/src/glfw_config.h">
          <Option target="glfw_objects"/>
       </Unit>
+      <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise6/data/Geralt_final.obj">
+         <Option target="DGP_DATA"/>
+      </Unit>
       <Unit filename="/home/jad/Documents/DigitalGeralt-/dgp2016-exercise6/data/Geralt_mesh.obj">
          <Option target="DGP_DATA"/>
       </Unit>

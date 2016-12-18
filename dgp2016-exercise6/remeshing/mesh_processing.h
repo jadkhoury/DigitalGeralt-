@@ -55,6 +55,7 @@ public:
     void give_thickness();
     void write_mesh(const string &filename);
     void convertToWireframe();
+    std::pair<float, float> computeAllFaceHeight();
 
     void load_mesh(const string& filename);
     void compute_mesh_properties();
