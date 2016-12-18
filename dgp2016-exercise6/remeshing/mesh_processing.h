@@ -52,7 +52,7 @@ public:
     //Line added here
     void smooth_target_length();
     vector<Mesh::Vertex> findCommonNeighbours(Mesh::Vertex v1, Mesh::Vertex v2);
-    void give_thickness();
+
     void write_mesh(const string &filename);
     void convertToWireframe();
     std::pair<float, float> computeAllFaceHeight();
@@ -64,7 +64,12 @@ public:
     void calc_uniform_mean_curvature();
     void calc_gauss_curvature();
 
-private:
+    void stars();
+    void add_spearhead(Mesh &mesh_temp, Mesh::Vertex v0, Mesh::Vertex v1, Mesh::Vertex v2);
+    void give_thickness(float thickness);
+
+
+        private:
     void calc_weights();
     void calc_edges_weights();
     void calc_vertices_weights();

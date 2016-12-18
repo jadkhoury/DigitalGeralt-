@@ -331,23 +331,9 @@ Viewer::Viewer() : nanogui::Screen(Eigen::Vector2i(1024, 768), "DGP Viewer") {
     b->setChangeCallback([this](bool wireframe) {
         this->wireframe_ =! this->wireframe_;
     });
-    //New button to export mesh
-    b = new Button(window_, "Export OBJ");
-    b->setFlags(Button::RadioButton);
-    b->setCallback([this]() {
-        string name = createName();
-        mesh_->write_mesh(name);
-    });
-    b->setPushed(false);
-    //New button to compute wireframe mesh
-    b = new Button(window_, "to Wireframe");
-    b->setCallback([this]() {
-        this->mesh_->convertToWireframe();
-        this->mesh_->compute_mesh_properties();
-        cout << "mesh propoerties computed" << endl;
-        this->refresh_mesh();
-        cout << "mesh refreshed" << endl << endl;
-    });
+
+
+
 
     b = new Button(window_, "Normals");
     b->setFlags(Button::ToggleButton);
@@ -390,7 +376,9 @@ Viewer::Viewer() : nanogui::Screen(Eigen::Vector2i(1024, 768), "DGP Viewer") {
         this->curvature_type = GAUSS;
     });
 
-    new Label(window_, "Remeshing Type", "sans-bold");
+    new Label(window_, "Remeshing", "sans-bold");
+
+
     vector<string> remeshing_type = {"Average", "Curvature", "Height"};
     ComboBox *c = new ComboBox(window_, remeshing_type);
     c->setCallback([this](int remeshing_type) {
@@ -405,6 +393,49 @@ Viewer::Viewer() : nanogui::Screen(Eigen::Vector2i(1024, 768), "DGP Viewer") {
         this->mesh_->compute_mesh_properties();
         this->refresh_mesh();
     });
+
+    //New button to compute wireframe mesh
+    b = new Button(window_, "To Wireframe");
+    b->setCallback([this]() {
+        this->mesh_->convertToWireframe();
+        this->mesh_->compute_mesh_properties();
+        cout << "mesh propoerties computed" << endl;
+        this->refresh_mesh();
+        cout << "mesh refreshed" << endl << endl;
+    });
+
+
+    b = new Button(window_, "Starify");
+    b->setCallback([this]() {
+        this->mesh_->stars();
+        this->mesh_->compute_mesh_properties();
+        this->refresh_mesh();
+    });
+
+
+    b = new Button(window_, "Thickness");
+    b->setCallback([this]() {
+        mesh_->give_thickness(2);
+        mesh_->compute_mesh_properties();
+        this->refresh_mesh();
+    });
+
+
+
+    new Label(window_, "Export", "sans-bold");
+
+
+    //New button to export mesh
+    b = new Button(window_, "Export OBJ");
+    b->setFlags(Button::RadioButton);
+    b->setCallback([this]() {
+        string name = createName();
+        mesh_->write_mesh(name);
+    });
+    b->setPushed(false);
+
+
+
 
     performLayout();
 

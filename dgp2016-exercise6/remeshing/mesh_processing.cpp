@@ -428,114 +428,257 @@ void MeshProcessing::tangential_relaxation() {
     }
 }
 
-void MeshProcessing::give_thickness() {
-    /*
-     * The goal of this fuction is to transform a surface into a solid.
-     * The solid should have the same shape as surface but with a none infinitely small thickness,
-     * so we could print the shape.
-     *
-     * Algo:
-     * 1) iterate over all vertices and create a new vertex slid down the normal
-     * 2) iterate over all faces and create the same faces for the associated vertex
-     * 3) iterate over boundary edge and create the boder to clos the solid
-     *
-     */
-    const float thickness = 2;
-    Mesh::Vertex_property <Point> vertex_normal = mesh_.vertex_property<Point>("v:normal");
-    Mesh::Vertex_property <Mesh::Vertex> associated_vertex = mesh_.vertex_property<Mesh::Vertex>("v:associated_vertex");
-    Mesh::Vertex_property <bool> is_primary = mesh_.vertex_property<bool>("v:is_primary");
-    // return true if the edge was a boundary edge and we generate the border for this edge
-    Mesh::Edge_property <bool> edge_border_done = mesh_.edge_property<bool>("v:is_edge_border_done");
 
-    /*
-     * Iterate over all vertex and create a new vertex in the oposite direction of the normal
-     * We call this new vertex the associated vertex and we store a link to this
-     */
-    Mesh::Vertex_iterator v_it, v_begin, v_end;
-    v_begin = mesh_.vertices_begin();
-    v_end = mesh_.vertices_end();
-    Point p, normal;
-    Mesh::Vertex assiociated_v;
 
-    for (v_it = v_begin; v_it != v_end; ++v_it) {
-        p = mesh_.position(*v_it);
-        normal = vertex_normal[*v_it];
-        // generate a new vertex
-        assiociated_v = mesh_.add_vertex(p - ( thickness * normal) );
-        associated_vertex[assiociated_v] = (*v_it); // we also bound the new vertex with the "old" one
-        is_primary[assiociated_v] = false;
-        // update the "old" vertex
-        associated_vertex[*v_it] = assiociated_v;
-        is_primary[*v_it] = true;
+// ============================================================================
+// Starify
+// ============================================================================
+
+
+    void MeshProcessing::add_spearhead(Mesh &mesh_temp, Mesh::Vertex v0, Mesh::Vertex v1, Mesh::Vertex v2)
+    {
+
+        Mesh::Vertex middle;
+
+        Point p_middle = (mesh_temp.position(v0) + mesh_temp.position(v1) + mesh_temp.position(v2) ) / 3.0;
+        middle = mesh_temp.add_vertex(p_middle);
+
+        mesh_temp.add_triangle(middle, v0, v1);
+        mesh_temp.add_triangle(middle, v2, v0);
+
+
+
     }
-    // the new vertex should not have faces, so we can iterate over all faces and generate a face for the associated vertecies
-    Mesh::Face_iterator f_it, f_begin, f_end;
-    f_begin = mesh_.faces_begin();
-    f_end = mesh_.faces_end();
-    Mesh::Vertex_around_face_circulator vc, vc_end;
 
-    for (f_it = f_begin; f_it != f_end; ++f_it) {
-        Mesh::Face f = *f_it;
-        vc = mesh_.vertices(f);
-        vc_end = vc;
-        Mesh::Vertex associated_vertices[3];
-        int i = 0;
-        do {
-            associated_vertices[i] = associated_vertex[*vc];
-            ++i;
-        } while (++vc != vc_end);
-        mesh_.add_triangle(associated_vertices[0], associated_vertices[1], associated_vertices[2] );
-    }
-    // we iterate over all halfedges and create a face if the halfedge is:
-    // * primary (not generate for thickness)
-    // * boundary
-    // * not allready done
-    Mesh::Vertex from_v, to_v, juxtaposed_v_from, juxtaposed_v_to;
-    Mesh::Halfedge_iterator h_it, h_begin, h_end;
-    h_begin = mesh_.halfedges_begin();
-    h_end = mesh_.halfedges_end();
-    Mesh::Halfedge h;
-    bool is_primary_halfedge = false;
-    int count = 0;
-    for (auto e: mesh_.edges()) {
-        if(mesh_.is_boundary(e)){
-            h = mesh_.halfedge(e, 0);
-            from_v = mesh_.from_vertex(h);
-            to_v = mesh_.to_vertex(h);
-            juxtaposed_v_from = associated_vertex[from_v];
-            juxtaposed_v_to = associated_vertex[to_v];
-            if (is_primary[from_v] && is_primary[to_v]){
-                is_primary_halfedge = true;
-            } else if (! is_primary[from_v] && ! is_primary[to_v]){
-                is_primary_halfedge = false;
-            }  else {
-                throw "a uncorrect halfedge was found!";
+    void MeshProcessing::stars() {
+
+        Mesh new_mesh; // we create a new mesh and replace the old one at the end
+        Mesh::Vertex center, ext0, ext1, middle, start, temp;
+
+        Mesh::Vertex_around_vertex_circulator vc, vc_next, vc_end;
+
+        Mesh::Vertex_property <bool> is_stared =
+                mesh_.vertex_property<bool>("v:is_started", false);
+
+
+        // iterate over all vertices
+        for (auto v_it : mesh_.vertices()) {
+
+            // create a star with this point as center if not already in a star or is at boundary
+            if (!mesh_.is_boundary(v_it) and ! is_stared[v_it]) {
+
+                vc = mesh_.vertices(v_it);
+                vc_next = vc;
+                vc_end = vc;
+
+                center = new_mesh.add_vertex( mesh_.position(v_it));
+
+                start = new_mesh.add_vertex( mesh_.position(*vc) ); // init use in the last circulation
+                ext0 = start; // init use in the first circulation
+                do {
+                    ++vc_next; // always one step forward
+                    // we always create the vertex in the vertex for vc_next, just for the last circulation the vertex is already created (start)
+                    if (vc_next == vc_end ){
+                        ext1 = start;
+                    }else {
+                        ext1 = new_mesh.add_vertex( mesh_.position(*vc_next) );
+                    }
+
+                    add_spearhead(new_mesh, center, ext0, ext1);
+
+                    is_stared[*vc] = true;
+                    ext0 = ext1;
+                }while( ++vc != vc_end);
+
+                is_stared[v_it];
             }
-            if (is_primary_halfedge){
-                e = mesh_.edge(*h_it);
-                if(! edge_border_done[e]){
-                    mesh_.add_triangle( from_v,juxtaposed_v_from, to_v);
-                    mesh_.add_triangle( to_v, juxtaposed_v_to, juxtaposed_v_from); // do not add the face, why?
-                    edge_border_done[e] = true;
+
+
+        }
+
+        std::cout << "#faces" << new_mesh.n_faces() << std::endl;
+        std::cout << "#vertices" << new_mesh.n_vertices() << std::endl;
+
+        mesh_ = new_mesh;
+
+    }
+
+
+// ============================================================================
+// THICKNESS
+// ============================================================================
+
+    void MeshProcessing::give_thickness(float thickness) {
+        /*
+         * The goal of this fuction is to transform a surface into a solid.
+         * The solid should have the same shape as surface but with a none infinitely small thickness,
+         * so we could print the shape.
+         *
+         * Algo:
+         * 1) iterate over all vertices and create a new vertex slid down the normal
+         * 2) iterate over all faces and create a face for the associated vertices.
+         *    Becarefull, face have a side and the side should be opposed to the original face.
+         *    (the face side is given by the order of the vertices in add_triangle function)
+         * 3) iterate over boundary edge and create face to close the solid
+         *
+         */
+
+
+
+
+        Mesh::Vertex_property <Point> vertex_normal =
+                mesh_.vertex_property<Point>("v:normal");
+
+
+        // Add proprety to generate thickness
+
+        // why in not reconize the type ???
+        Mesh::Vertex_property <surface_mesh::Surface_mesh::Vertex> associated_vertex =
+                mesh_.vertex_property<surface_mesh::Surface_mesh::Vertex>("v:associated_vertex");
+
+
+        // return true if the vertex was not generate for thickness
+        Mesh::Vertex_property<bool> is_primary =
+                mesh_.vertex_property<bool>("v:is_primary");
+
+
+        // return true if the edge was a boundary edge and we generate the border for this edge
+        Mesh::Edge_property<bool> edge_border_done =
+                mesh_.edge_property<bool>("v:is_edge_border_done");
+
+
+
+
+        /*
+         * Iterate over all vertex and create a new vertex in the oposite direction of the normal
+         * We call this new vertex the associated vertex and we store a link to this
+         */
+        Mesh::Vertex_iterator v_it, v_begin, v_end;
+
+        v_begin = mesh_.vertices_begin();
+        v_end = mesh_.vertices_end();
+        Point p, normal;
+        Mesh::Vertex assiociated_v;
+
+
+        for (v_it = v_begin; v_it != v_end; ++v_it) {
+            p = mesh_.position(*v_it);
+            normal = vertex_normal[*v_it];
+
+            // generate a new vertex
+            assiociated_v = mesh_.add_vertex(p - (thickness * normal));
+            associated_vertex[assiociated_v] = (*v_it); // we also bound the new vertex with the "old" one
+            is_primary[assiociated_v] = false;
+
+            // update the "old" vertex
+            associated_vertex[*v_it] = assiociated_v;
+            is_primary[*v_it] = true;
+
+        }
+
+
+
+
+
+        // the new vertex should not have faces, so we can iterate over all faces and generate a face for the associated vertecies
+
+        Mesh::Face_iterator f_it, f_begin, f_end;
+        f_begin = mesh_.faces_begin();
+        f_end = mesh_.faces_end();
+
+        Mesh::Vertex_around_face_circulator vc, vc_end;
+
+        for (f_it = f_begin; f_it != f_end; ++f_it) {
+
+            Mesh::Face f = *f_it;
+            vc = mesh_.vertices(f);
+            vc_end = vc;
+
+            Mesh::Vertex associated_vertices[3];
+
+            int i = 0;
+            do {
+                if ( ! is_primary[*vc]){
+                    throw std::logic_error("We should have only primary vertices here! ");
+                }
+                associated_vertices[i] = associated_vertex[*vc];
+                ++i;
+
+            } while (++vc != vc_end);
+
+            mesh_.add_triangle( associated_vertices[2], associated_vertices[1], associated_vertices[0]); // give also a side to the face
+
+        }
+
+
+
+
+        // we iterate over all halfedges and create a face if the halfedge is:
+
+        // * primary (not generate for thickness)
+        // * boundary
+        // * not already done
+
+        Mesh::Vertex from_v, to_v, juxtaposed_v_from, juxtaposed_v_to;
+
+        Mesh::Halfedge_iterator h_it, h_begin, h_end;
+
+        h_begin = mesh_.halfedges_begin();
+        h_end = mesh_.halfedges_end();
+
+        Mesh::Edge e;
+        bool is_primary_halfedge = false;
+
+        int count = 0;
+
+        for (h_it = h_begin; h_it != h_end; ++h_it) {
+
+            if (mesh_.is_boundary(*h_it)) {
+
+                from_v = mesh_.from_vertex(*h_it);
+                to_v = mesh_.to_vertex(*h_it);
+
+                juxtaposed_v_from = associated_vertex[from_v];
+                juxtaposed_v_to = associated_vertex[to_v];
+
+                if (is_primary[from_v] && is_primary[to_v]) {
+                    is_primary_halfedge = true;
+
+                } else if (!is_primary[from_v] && !is_primary[to_v]) {
+                    is_primary_halfedge = false;
+                } else {
+                    throw std::logic_error("a uncorrect halfedge was found!");
+                }
+
+
+                if (is_primary_halfedge) {
+
+                    e = mesh_.edge(*h_it);
+
+                    if (!edge_border_done[e]) {
+
+                        Mesh::Face f1 = mesh_.add_triangle(from_v, to_v,  juxtaposed_v_from); // the sense of the vertices should be use
+                        Mesh::Face f2 = mesh_.add_triangle(juxtaposed_v_from, to_v, juxtaposed_v_to);
+
+                        edge_border_done[e] = true;
+                    }
                 }
             }
+
         }
+
+
+        cout << "# of vertices : " << mesh_.n_vertices() << endl;
+        cout << "# of faces : " << mesh_.n_faces() << endl;
+        cout << "# of edges : " << mesh_.n_edges() << endl;
+
     }
-    cout << "# of vertices : " << mesh_.n_vertices() << endl;
-    cout << "# of faces : " << mesh_.n_faces() << endl;
-    cout << "# of edges : " << mesh_.n_edges() << endl;
-}
 
 
 // ========================================================================
 // WIREFRAME
 // ========================================================================
 /*
-//compute length of 3d vector (implemented in GLM but not imported in this project)
-float length(Point p){
-    return std::sqrt(p[0]*p[0] + p[1]*p[1] + p[2]*p[2]);
-}
-
 //compute triangle area
 float compute_area(Point p0, Point p1, Point p2){
     return 0.5f * length(cross(p1-p0, p2-p0));
