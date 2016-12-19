@@ -443,7 +443,7 @@ void MeshProcessing::tangential_relaxation() {
         Point p_middle = (mesh_temp.position(v0) + mesh_temp.position(v1) + mesh_temp.position(v2) ) / 3.0;
         middle = mesh_temp.add_vertex(p_middle);
 
-        mesh_temp.add_triangle(middle, v0, v1);
+        mesh_.add_triangle(middle, v0, v1);
         mesh_temp.add_triangle(middle, v2, v0);
 
 
@@ -502,6 +502,121 @@ void MeshProcessing::tangential_relaxation() {
         mesh_ = new_mesh;
 
     }
+
+
+    void MeshProcessing::add_anti_spearhead(Mesh &new_mesh, Point p0, Point p1, Point p2 )
+    {
+
+
+
+
+        Mesh::Vertex middle, v1, v2, v1r, v2r, v1cv2;
+        Point p_middle, p_v1r, p_v2r, p_v1cv2;
+        double reduce_factor = 0.8;
+        Mesh::Face face_temp;
+
+
+        v1 = new_mesh.add_vertex(p1);
+        v2 = new_mesh.add_vertex(p2);
+
+        p_middle = (p0 + p1 + p2 ) / 3.0;
+        middle = new_mesh.add_vertex(p_middle);
+
+        p_v1cv2 = (p1 + p2) /2.0;
+        v1cv2 = new_mesh.add_vertex(p_v1cv2);
+
+        p_v1r = (reduce_factor * ( p1 - p0) )  + p0 ;
+        v1r = new_mesh.add_vertex(p_v1r);
+        p_v2r = (reduce_factor * ( p2 - p0) ) + p0;
+        v2r = new_mesh.add_vertex(p_v2r);
+
+
+        //face_temp = new_mesh.add_triangle(v0, v1r, middle );
+        //face_temp = new_mesh.add_triangle(v0, middle, v2r);
+        face_temp = new_mesh.add_triangle(middle, v1r,  v1cv2);
+        face_temp = new_mesh.add_triangle(middle, v1cv2, v2r);
+        face_temp = new_mesh.add_triangle(v1r, v1, v1cv2);
+        face_temp = new_mesh.add_triangle(v2r, v1cv2, v2);
+
+
+
+    }
+
+
+    void MeshProcessing::stars2() {
+
+
+
+
+
+        Mesh new_mesh; // we create a new mesh and replace the old one at the end
+        Point  p0,p1,p2, start;
+        Mesh::Vertex primary_origin;
+
+        Mesh::Vertex_around_vertex_circulator vc, vc_next, vc_end;
+
+
+        Mesh::Vertex_property <bool> is_stared =
+                mesh_.vertex_property<bool>("v:is_started", false);
+
+
+
+        Mesh::Edge_iterator e_it, e_begin, e_end;
+        e_begin = mesh_.edges_begin();
+        e_end = mesh_.edges_end();
+
+        bool first = true;
+        for (e_it = e_begin; e_it != e_end; ++e_it) {
+
+            primary_origin = mesh_.vertex(*e_it, 0);
+
+            // create a star with the point origin is not already in a star nor at boundary
+            if (!mesh_.is_boundary(primary_origin) and ! is_stared[primary_origin] ) {
+
+
+                vc = mesh_.vertices(primary_origin);
+                vc_next = vc;
+                vc_end = vc;
+                ++vc_next;
+
+                p0 =  mesh_.position(primary_origin);
+                start = mesh_.position(*vc);
+                p1 = start;
+
+                do {
+                    if (vc_next == vc_end){
+                        p2 = start;
+                    }else{
+                        p2 = mesh_.position(*vc_next);
+                    }
+                    add_anti_spearhead( new_mesh , p0 , p1, p2  );
+
+                    is_stared[*vc] = true;
+                    p1 = p2;
+                    ++vc_next;
+                }while( ++vc != vc_end);
+
+                is_stared[primary_origin] = true;
+            }
+
+
+
+        }
+
+
+
+
+        std::cout << "#faces" << new_mesh.n_faces() << std::endl;
+        std::cout << "#vertices" << new_mesh.n_vertices() << std::endl;
+
+        mesh_ = new_mesh;
+
+
+
+    }
+
+
+
 
 
 // ============================================================================

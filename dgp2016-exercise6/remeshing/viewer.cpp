@@ -407,7 +407,7 @@ Viewer::Viewer() : nanogui::Screen(Eigen::Vector2i(1024, 768), "DGP Viewer") {
 
     b = new Button(window_, "Starify");
     b->setCallback([this]() {
-        this->mesh_->stars();
+        this->mesh_->stars2();
         this->mesh_->compute_mesh_properties();
         this->refresh_mesh();
     });
@@ -440,7 +440,7 @@ Viewer::Viewer() : nanogui::Screen(Eigen::Vector2i(1024, 768), "DGP Viewer") {
     performLayout();
 
     initShaders();
-    mesh_ = new mesh_processing::MeshProcessing("../data/Geralt_final.obj");
+    mesh_ = new mesh_processing::MeshProcessing("../data/bunny.off");
     this->refresh_mesh();
     this->refresh_trackball_center();
 }
