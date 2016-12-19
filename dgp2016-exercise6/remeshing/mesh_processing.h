@@ -67,7 +67,7 @@ public:
     void stars();
     void stars2();
     void add_spearhead(Mesh &mesh_temp, Mesh::Vertex v0, Mesh::Vertex v1, Mesh::Vertex v2);
-    void add_anti_spearhead( Mesh &new_mesh, surface_mesh::Point p0, surface_mesh::Point p1, surface_mesh::Point  v2);
+    void add_anti_spearhead( Mesh &new_mesh,Mesh::Vertex middle, Mesh::Vertex  v1, Mesh::Vertex  v2,  Mesh::Vertex  v1r, Mesh::Vertex  v2r, Mesh::Vertex  v1cv2 );
     void give_thickness(float thickness);
 
 

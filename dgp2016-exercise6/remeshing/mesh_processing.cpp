@@ -504,32 +504,9 @@ void MeshProcessing::tangential_relaxation() {
     }
 
 
-    void MeshProcessing::add_anti_spearhead(Mesh &new_mesh, Point p0, Point p1, Point p2 )
+    void MeshProcessing::add_anti_spearhead(Mesh &new_mesh,  Mesh::Vertex middle, Mesh::Vertex  v1, Mesh::Vertex  v2,  Mesh::Vertex  v1r, Mesh::Vertex  v2r, Mesh::Vertex  v1cv2 )
     {
-
-
-
-
-        Mesh::Vertex middle, v1, v2, v1r, v2r, v1cv2;
-        Point p_middle, p_v1r, p_v2r, p_v1cv2;
-        double reduce_factor = 0.8;
         Mesh::Face face_temp;
-
-
-        v1 = new_mesh.add_vertex(p1);
-        v2 = new_mesh.add_vertex(p2);
-
-        p_middle = (p0 + p1 + p2 ) / 3.0;
-        middle = new_mesh.add_vertex(p_middle);
-
-        p_v1cv2 = (p1 + p2) /2.0;
-        v1cv2 = new_mesh.add_vertex(p_v1cv2);
-
-        p_v1r = (reduce_factor * ( p1 - p0) )  + p0 ;
-        v1r = new_mesh.add_vertex(p_v1r);
-        p_v2r = (reduce_factor * ( p2 - p0) ) + p0;
-        v2r = new_mesh.add_vertex(p_v2r);
-
 
         //face_temp = new_mesh.add_triangle(v0, v1r, middle );
         //face_temp = new_mesh.add_triangle(v0, middle, v2r);
@@ -545,64 +522,147 @@ void MeshProcessing::tangential_relaxation() {
 
     void MeshProcessing::stars2() {
 
+        Mesh::Vertex_property <surface_mesh::Surface_mesh::Vertex> a_vertex =
+                mesh_.vertex_property<surface_mesh::Surface_mesh::Vertex>("v:a_vertex");
 
 
+        Mesh::Edge_property <surface_mesh::Surface_mesh::Vertex> e_vertex =
+                mesh_.edge_property<surface_mesh::Surface_mesh::Vertex>("e:a_vertex");
+
+
+        // star_state = 3: center of a star; star_state = 1: branche of a star; star_stat = -1: not used
+        Mesh::Vertex_property<int> star_state =
+                mesh_.vertex_property<int>("v:star_state", -1);
+
+        // star_state = 3: center of a star; star_state = 1: branche of a star; star_stat = -1: not used
+        Mesh::Edge_property<int> edge_star_state =
+                mesh_.edge_property<int>("e:edge_star_state", -1);
 
 
         Mesh new_mesh; // we create a new mesh and replace the old one at the end
-        Point  p0,p1,p2, start;
-        Mesh::Vertex primary_origin;
+        Point p_temp, p0,p1,p2, start;
+        Mesh::Vertex primary_origin, v_temp;
+        Mesh::Vertex primary_vertices[3];
 
         Mesh::Vertex_around_vertex_circulator vc, vc_next, vc_end;
-
-
-        Mesh::Vertex_property <bool> is_stared =
-                mesh_.vertex_property<bool>("v:is_started", false);
-
+        Mesh::Vertex_around_face_circulator fc, fc_end;
 
 
         Mesh::Edge_iterator e_it, e_begin, e_end;
         e_begin = mesh_.edges_begin();
         e_end = mesh_.edges_end();
+        Mesh::Edge e_temp ;
 
-        bool first = true;
-        for (e_it = e_begin; e_it != e_end; ++e_it) {
+        double  reduce_factor = 0.9;
+        double center_factor = 0.1;
 
-            primary_origin = mesh_.vertex(*e_it, 0);
 
-            // create a star with the point origin is not already in a star nor at boundary
-            if (!mesh_.is_boundary(primary_origin) and ! is_stared[primary_origin] ) {
+        // determine the star_state and create only once the needed vector
+        first = true;
+        for (auto current_v : mesh_.vertices()) {
 
+            primary_origin = current_v;
+
+
+            if (!mesh_.is_boundary(primary_origin) and  star_state[primary_origin] == -1 and first) {
 
                 vc = mesh_.vertices(primary_origin);
                 vc_next = vc;
                 vc_end = vc;
-                ++vc_next;
-
-                p0 =  mesh_.position(primary_origin);
-                start = mesh_.position(*vc);
-                p1 = start;
 
                 do {
-                    if (vc_next == vc_end){
-                        p2 = start;
-                    }else{
-                        p2 = mesh_.position(*vc_next);
-                    }
-                    add_anti_spearhead( new_mesh , p0 , p1, p2  );
-
-                    is_stared[*vc] = true;
-                    p1 = p2;
                     ++vc_next;
+
+                    if (star_state[*vc] == -1) {
+                        v_temp = new_mesh.add_vertex(mesh_.position(*vc));
+                        a_vertex[*vc] = v_temp;
+                        star_state[*vc] = 1;
+                    }
+
+                    e_temp = mesh_.find_edge(*vc, *vc_next);
+                    if(edge_star_state[e_temp] == -1) {
+                        v_temp = new_mesh.add_vertex( (mesh_.position(*vc) + mesh_.position(*vc_next) ) / 2.0) ;
+                        e_vertex[e_temp] = v_temp;
+                        edge_star_state[e_temp] = 1;
+                    }
+
+                    e_temp = mesh_.find_edge(*vc, primary_origin);
+
+                    if(edge_star_state[e_temp] == -1) {
+                        p_temp = reduce_factor * (mesh_.position(*vc) -mesh_.position(primary_origin) ) + mesh_.position(primary_origin) ;
+                        v_temp = new_mesh.add_vertex( p_temp);
+                        e_vertex[e_temp] = v_temp;
+                        edge_star_state[e_temp] = 3;
+                    }
+
                 }while( ++vc != vc_end);
 
-                is_stared[primary_origin] = true;
+                // do not create primary origin in new mesh other wise big trouble
+                star_state[primary_origin] = 3;
             }
 
 
 
         }
 
+
+
+        Mesh::Vertex middle, v1, v2, v1r, v2r, v1cv2;
+
+
+
+        for (auto current_v: mesh_.vertices() ) {
+
+            primary_origin = current_v;
+
+            if ( star_state[primary_origin] == 3 ) {
+
+                vc = mesh_.vertices(primary_origin);
+                vc_next = vc;
+                vc_end = vc;
+
+                do {
+                    ++vc_next;
+                    v1 = a_vertex[*vc];
+                    v2 = a_vertex[*vc_next];
+                    v1r = e_vertex[mesh_.find_edge(*vc, primary_origin)];
+                    v2r = e_vertex[mesh_.find_edge(*vc_next, primary_origin)];
+                    v1cv2 = e_vertex[mesh_.find_edge(*vc, *vc_next)];
+                    // this is the only one we create here
+                    p_temp = center_factor * ( new_mesh.position(v1cv2) - mesh_.position(primary_origin)) + mesh_.position(primary_origin);
+                    middle = new_mesh.add_vertex( p_temp);
+
+                    add_anti_spearhead( new_mesh , middle, v1, v2, v1r, v2r, v1cv2 );
+
+                }while( ++vc != vc_end);
+            }
+        }
+
+        // check for hole
+        for ( auto face: mesh_.faces()){
+            fc = mesh_.vertices(face);
+            fc_end = fc;
+            bool is_hole = true;
+            int i = 0;
+            do {
+                if( star_state[*fc] == 3) {
+                    is_hole = false;
+                }
+                primary_vertices[i] = *fc;
+                if (star_state[*fc] == -1){
+                    std::cout << "may be a boundary case" << std::endl;
+                    v_temp =new_mesh.add_vertex(mesh_.position(*fc));
+                    a_vertex[*fc] = v_temp;
+                }
+                ++i;
+            }while( ++fc != fc_end);
+
+            if (is_hole){
+                new_mesh.add_triangle(    a_vertex[primary_vertices[0]] ,a_vertex[primary_vertices[1]], a_vertex[primary_vertices[2]]);
+            }
+
+
+        }
 
 
 
