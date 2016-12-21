@@ -1,7 +1,0 @@
-#include <OpenGP/SurfaceMesh/GL/SurfaceMeshRenderShaded.h>
-#include <OpenGP/SurfaceMesh/bounding_box.h>
-
-//=============================================================================
-namespace OpenGP {
-//=============================================================================
-
