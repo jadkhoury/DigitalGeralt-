@@ -58,8 +58,6 @@ void MeshProcessing::remesh(const REMESHING_TYPE &remeshing_type,
         calc_weights();
     }
 
-    //give_thickness();
-
 }
 
 void MeshProcessing::calc_target_length(const REMESHING_TYPE &remeshing_type) {
@@ -96,7 +94,7 @@ void MeshProcessing::calc_target_length(const REMESHING_TYPE &remeshing_type) {
         }
 #define FACTOR
 #ifdef FACTOR
-        float factor = 2.0;
+        float factor = 1.7;
         for (auto v:mesh_.vertices()) {
             target_length[v] *= factor;
         }
@@ -1214,9 +1212,12 @@ pair<float, float> MeshProcessing::computeAllFaceHeight(){
 }
 
 void MeshProcessing::convertToWireframe(){
+
+
+
     Mesh::Face_property<float> f_height = mesh_.face_property<float>("f:height");
     Mesh::Vertex null_v;
-    Mesh::Edge_property<Mesh::Vertex> e_middle = mesh_.add_edge_property<Mesh::Vertex>("e:middle");
+    Mesh::Edge_property<Mesh::Vertex> e_middle = mesh_.add_edge_property<Mesh::Vertex>("e:middle", null_v);
     Mesh::Edge e;
     Mesh::Vertex_around_face_circulator vc, vc_end;
     Mesh::Vertex originals[3], new_points[3], middle_points[3];
@@ -1513,8 +1514,8 @@ void MeshProcessing::calc_vertices_weights() {
     }
 }
 void MeshProcessing::write_mesh(const string &filename){
-    //if (!mesh_.write(filename)) {
-    if (!mesh_.write("directional_demo.obj")) {
+    if (!mesh_.write(filename)) {
+
         std::cerr << "Mesh able to export, exiting." << std::endl;
         exit(-1);
     }

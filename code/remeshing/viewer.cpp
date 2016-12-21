@@ -305,7 +305,7 @@ Viewer::Viewer() : nanogui::Screen(Eigen::Vector2i(1024, 768), "DGP Viewer") {
     });
     b = new Button(popup, "Geralt");
     b->setCallback([this]() {
-        mesh_->load_mesh("../data/Geralt_final.obj");
+        mesh_->load_mesh("../data/testing-geralt.obj");
         this->refresh_mesh();
         this->refresh_trackball_center();
     });
