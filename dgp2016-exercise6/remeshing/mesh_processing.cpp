@@ -1022,44 +1022,29 @@ void MeshProcessing::tangential_relaxation() {
          *
          */
 
-
-
-
         Mesh::Vertex_property <Point> vertex_normal =
                 mesh_.vertex_property<Point>("v:normal");
 
-
         // Add proprety to generate thickness
-
         // why in not reconize the type ???
         Mesh::Vertex_property <surface_mesh::Surface_mesh::Vertex> associated_vertex =
                 mesh_.vertex_property<surface_mesh::Surface_mesh::Vertex>("v:associated_vertex");
 
-
         // return true if the vertex was not generate for thickness
         Mesh::Vertex_property<bool> is_primary =
                 mesh_.vertex_property<bool>("v:is_primary");
-
-
         // return true if the edge was a boundary edge and we generate the border for this edge
         Mesh::Edge_property<bool> edge_border_done =
                 mesh_.edge_property<bool>("v:is_edge_border_done");
-
-
-
-
         /*
          * Iterate over all vertex and create a new vertex in the oposite direction of the normal
          * We call this new vertex the associated vertex and we store a link to this
          */
         Mesh::Vertex_iterator v_it, v_begin, v_end;
-
         v_begin = mesh_.vertices_begin();
         v_end = mesh_.vertices_end();
         Point p, normal;
         Mesh::Vertex assiociated_v;
-
-
         for (v_it = v_begin; v_it != v_end; ++v_it) {
             p = mesh_.position(*v_it);
             normal = vertex_normal[*v_it];
@@ -1074,19 +1059,12 @@ void MeshProcessing::tangential_relaxation() {
             is_primary[*v_it] = true;
 
         }
-
-
-
-
-
         // the new vertex should not have faces, so we can iterate over all faces and generate a face for the associated vertecies
 
         Mesh::Face_iterator f_it, f_begin, f_end;
         f_begin = mesh_.faces_begin();
         f_end = mesh_.faces_end();
-
         Mesh::Vertex_around_face_circulator vc, vc_end;
-
         for (f_it = f_begin; f_it != f_end; ++f_it) {
 
             Mesh::Face f = *f_it;
@@ -1102,16 +1080,9 @@ void MeshProcessing::tangential_relaxation() {
                 }
                 associated_vertices[i] = associated_vertex[*vc];
                 ++i;
-
             } while (++vc != vc_end);
-
             mesh_.add_triangle( associated_vertices[2], associated_vertices[1], associated_vertices[0]); // give also a side to the face
-
         }
-
-
-
-
         // we iterate over all halfedges and create a face if the halfedge is:
 
         // * primary (not generate for thickness)
@@ -1244,6 +1215,9 @@ pair<float, float> MeshProcessing::computeAllFaceHeight(){
 
 void MeshProcessing::convertToWireframe(){
     Mesh::Face_property<float> f_height = mesh_.face_property<float>("f:height");
+    Mesh::Vertex null_v;
+    Mesh::Edge_property<Mesh::Vertex> e_middle = mesh_.add_edge_property<Mesh::Vertex>("e:middle");
+    Mesh::Edge e;
     Mesh::Vertex_around_face_circulator vc, vc_end;
     Mesh::Vertex originals[3], new_points[3], middle_points[3];
     Point center, oi, oj, midpos, newpos, to_center;
@@ -1268,7 +1242,6 @@ void MeshProcessing::convertToWireframe(){
                 ++i;
             }while(++vc != vc_end);
             center /= 3.0;
-            mesh_.delete_face(current_f);
 
             //We compute the adaptive thickness
             float d;
@@ -1280,16 +1253,25 @@ void MeshProcessing::convertToWireframe(){
 
             //We fill the middles and news vertex arrays
             for(i=0; i<3; ++i){
-
                 j = (i+1)%3;
                 oi = mesh_.position(originals[i]);
                 oj = mesh_.position(originals[j]);
                 to_center = normalize(center - oi);
-                midpos = (oi + oj)/2.0;
+                e = mesh_.find_edge(originals[i], originals[j]);
+                if(e_middle[e] != null_v){
+                    middle_points[i] = e_middle[e];
+                    cout << "middle already computed" << endl;
+                } else {
+                    midpos = (oi + oj)/2.0;
+                    middle_points[i] = mesh_.add_vertex(midpos);
+                    e_middle[e] = middle_points[i];
+                    cout << "middle not computed yet" << endl;
+                }
                 newpos = oi + to_center * t;
-                middle_points[i] = mesh_.add_vertex(midpos);
                 new_points[i] = mesh_.add_vertex(newpos);
             }
+            mesh_.delete_face(current_f);
+
 
             //We add the new triangles
             for(i=0; i<3; ++i){
@@ -1531,7 +1513,8 @@ void MeshProcessing::calc_vertices_weights() {
     }
 }
 void MeshProcessing::write_mesh(const string &filename){
-    if (!mesh_.write(filename)) {
+    //if (!mesh_.write(filename)) {
+    if (!mesh_.write("directional_demo.obj")) {
         std::cerr << "Mesh able to export, exiting." << std::endl;
         exit(-1);
     }
