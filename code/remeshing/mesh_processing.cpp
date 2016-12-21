@@ -94,7 +94,7 @@ void MeshProcessing::calc_target_length(const REMESHING_TYPE &remeshing_type) {
         }
 #define FACTOR
 #ifdef FACTOR
-        float factor = 1.7;
+        float factor = 1;
         for (auto v:mesh_.vertices()) {
             target_length[v] *= factor;
         }
@@ -540,7 +540,6 @@ void MeshProcessing::tangential_relaxation() {
 
 
         Mesh::Vertex middle, v1, v2, v1r, v2r, v1cv2;
-
 
 
         for (auto current_v: mesh_.vertices() ) {
