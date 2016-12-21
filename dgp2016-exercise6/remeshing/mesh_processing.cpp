@@ -680,6 +680,328 @@ void MeshProcessing::tangential_relaxation() {
 
 
 
+    void MeshProcessing::add_branch(Mesh &new_mesh,  Mesh::Vertex middle, Mesh::Vertex  v0, Mesh::Vertex  v1,  Mesh::Vertex  v1b1, Mesh::Vertex  v1b2, Mesh::Vertex v2 )
+    {
+        Mesh::Face face_temp;
+
+        face_temp = new_mesh.add_triangle(v0, v1, middle);
+        face_temp = new_mesh.add_triangle(v1, v1b1, middle);
+        face_temp = new_mesh.add_triangle(v1b2, v2, middle);
+        face_temp = new_mesh.add_triangle(v2, v0, middle );
+
+
+    }
+
+    void MeshProcessing::stars4() {
+
+        mesh_.triangulate();
+
+        Mesh::Vertex_property <surface_mesh::Surface_mesh::Vertex> a_vertex =
+                mesh_.vertex_property<surface_mesh::Surface_mesh::Vertex>("v:a_vertex");
+
+
+        Mesh::Edge_property <surface_mesh::Surface_mesh::Vertex> e0_vertex =
+                mesh_.edge_property<surface_mesh::Surface_mesh::Vertex>("e:a0_vertex");
+
+        Mesh::Edge_property <surface_mesh::Surface_mesh::Vertex> e1_vertex =
+                mesh_.edge_property<surface_mesh::Surface_mesh::Vertex>("e:a1_vertex");
+
+        Mesh::Edge_property <surface_mesh::Surface_mesh::Vertex> e2_vertex =
+                mesh_.edge_property<surface_mesh::Surface_mesh::Vertex>("e:a2_vertex");
+
+
+
+        // star_state = 3: center of a star; star_state = 1: branche of a star; star_stat = -1: not used
+        Mesh::Vertex_property<int> star_state =
+                mesh_.vertex_property<int>("v:star_state", -1);
+
+        // star_state = 3: center of a star; star_state = 1: branche of a star; star_stat = -1: not used
+        Mesh::Edge_property<int> edge_star_state =
+                mesh_.edge_property<int>("e:edge_star_state", -1);
+
+
+        Mesh new_mesh; // we create a new mesh and replace the old one at the end
+        Point p_temp, p0,p1,p2, start;
+        Mesh::Vertex primary_origin, v_temp;
+        Mesh::Vertex primary_vertices[3];
+
+        Mesh::Vertex_around_vertex_circulator vc, vc_next, vc_end;
+        Mesh::Vertex_around_face_circulator fc, fc_end;
+
+
+        Mesh::Edge_iterator e_it, e_begin, e_end;
+        e_begin = mesh_.edges_begin();
+        e_end = mesh_.edges_end();
+        Mesh::Edge e_temp ;
+
+        double  border_factor = 0.05;
+        double center_factor = 0.5;
+
+
+        // determine the star_state and create only once the needed vertices
+        first = true;
+        for (auto current_v : mesh_.vertices()) {
+
+            primary_origin = current_v;
+
+
+            if (!mesh_.is_boundary(primary_origin) and  star_state[primary_origin] == -1 and first) {
+
+                vc = mesh_.vertices(primary_origin);
+                vc_next = vc;
+                vc_end = vc;
+
+                do {
+                    ++vc_next;
+
+                    if (star_state[*vc] == -1) {
+                        v_temp = new_mesh.add_vertex(mesh_.position(*vc));
+                        a_vertex[*vc] = v_temp;
+                        star_state[*vc] = 1;
+                    }
+
+                    // attach the 2 vertices
+                    e_temp = mesh_.find_edge(*vc, *vc_next);
+                    if(edge_star_state[e_temp] == -1) {
+                        p_temp = (mesh_.position(*vc_next) - mesh_.position(*vc)  );
+                        e0_vertex[e_temp] = new_mesh.add_vertex( p_temp * border_factor + mesh_.position(*vc));
+                        e2_vertex[e_temp] = new_mesh.add_vertex( p_temp * (1 - border_factor ) + mesh_.position(*vc));
+                        edge_star_state[e_temp] = 1;
+                    }
+
+
+                }while( ++vc != vc_end);
+
+                // do not create primary origin in new mesh other wise big trouble
+                v_temp = new_mesh.add_vertex(mesh_.position(primary_origin));
+                a_vertex[primary_origin] = v_temp;
+                star_state[primary_origin] = 3;
+            }
+
+
+
+        }
+
+
+
+        Mesh::Vertex middle, v0, v1, v1b1, v1b2, v2;
+
+        for (auto current_v: mesh_.vertices() ) {
+
+            primary_origin = current_v;
+
+            if ( star_state[primary_origin] == 3 ) {
+
+                vc = mesh_.vertices(primary_origin);
+                vc_next = vc;
+                vc_end = vc;
+
+                do {
+                    ++vc_next;
+                    v0 = a_vertex[primary_origin];
+                    v1 = a_vertex[*vc];
+                    v2 = a_vertex[*vc_next];
+                    v1b1 = e0_vertex[mesh_.find_edge(*vc, *vc_next)];
+                    v1b2 = e2_vertex[mesh_.find_edge(*vc, *vc_next)];
+                    // this is the only one we create here
+                    p_temp = center_factor * ( ((new_mesh.position(v1) + new_mesh.position(v2)) / 2.0 ) - mesh_.position(primary_origin)) + mesh_.position(primary_origin);
+                    middle = new_mesh.add_vertex( p_temp);
+
+                    add_branch( new_mesh , middle, v0, v1, v1b1, v1b2, v2 );
+
+                }while( ++vc != vc_end);
+            }
+        }
+
+
+        std::cout << "#faces" << new_mesh.n_faces() << std::endl;
+        std::cout << "#vertices" << new_mesh.n_vertices() << std::endl;
+
+        mesh_ = new_mesh;
+
+
+
+    }
+
+
+    void MeshProcessing::add_hexagon(Mesh &new_mesh, Mesh::Vertex vertices[], int size, Mesh::Vertex origin)
+    {
+
+        Mesh::Face face_temp;
+
+        int next_i = 1;
+        for (int i = 0; i < size; ++i){
+            new_mesh.add_triangle(origin, vertices[i], vertices[next_i] );
+            next_i = (++next_i) % size;
+        }
+
+    }
+
+
+
+    void MeshProcessing::add_kite(Mesh &new_mesh, Mesh::Vertex bv0v1, Mesh::Vertex bv1v0, Mesh::Vertex bv1v2,
+                                  Mesh::Vertex bv2v1, Mesh::Vertex bv2v0, Mesh::Vertex bv0v2, Mesh::Vertex middle)
+    {
+
+        Mesh::Face face_temp;
+
+        face_temp = new_mesh.add_triangle(bv0v1, bv1v0, middle);
+        face_temp = new_mesh.add_triangle(bv1v0, bv1v2, middle);
+
+        face_temp = new_mesh.add_triangle(bv0v2, middle, bv2v1);
+        face_temp = new_mesh.add_triangle(bv2v1, bv2v0, bv0v2);
+
+        face_temp = new_mesh.add_triangle(bv0v1, middle, bv0v2);
+
+
+    }
+
+
+
+
+    void MeshProcessing::stars3() {
+
+        mesh_.triangulate();
+
+        Mesh::Vertex_property <surface_mesh::Surface_mesh::Vertex> a_vertex =
+                mesh_.vertex_property<surface_mesh::Surface_mesh::Vertex>("v:a_vertex");
+
+
+        Mesh::Halfedge_property <surface_mesh::Surface_mesh::Vertex> h_vertex =
+                mesh_.halfedge_property<surface_mesh::Surface_mesh::Vertex>("h:a_vertex");
+
+
+
+        // star_state = 3: center of a star; star_state = 1: branche of a star; star_stat = -1: not used
+        Mesh::Vertex_property<int> star_state =
+                mesh_.vertex_property<int>("v:star_state", -1);
+
+        // star_state = 3: center of a star; star_state = 1: branche of a star; star_stat = -1: not used
+        Mesh::Halfedge_property<int> halfedge_hex =
+                mesh_.halfedge_property<int>("h:halfedge_hex", -1);
+
+
+        Mesh new_mesh; // we create a new mesh and replace the old one at the end
+        Point p_temp, p0,p1,p2, start;
+        Mesh::Vertex primary_origin, v_temp;
+        Mesh::Vertex primary_vertices[3];
+
+        Mesh::Vertex_around_vertex_circulator vc, vc_next, vc_end;
+        Mesh::Vertex_around_face_circulator fc, fc_end;
+
+
+        Mesh::Edge_iterator e_it, e_begin, e_end;
+        e_begin = mesh_.edges_begin();
+        e_end = mesh_.edges_end();
+        Mesh::Edge e_temp ;
+
+        double  border_factor = 0.05;
+        double center_factor = 0.5;
+
+        Mesh::Vertex from_v, to_v, new_v;
+
+        // create the needed vertex for the "hexagon" of each vertex
+        for (auto h : mesh_.halfedges()){
+
+            from_v = mesh_.from_vertex(h);
+            to_v = mesh_.to_vertex(h);
+            new_v = new_mesh.add_vertex( border_factor * (mesh_.position(to_v) - mesh_.position(from_v)) + mesh_.position(from_v));
+            h_vertex[h] = new_v;
+        }
+
+        for (auto v: mesh_.vertices()) {
+            v_temp = new_mesh.add_vertex(mesh_.position(v));
+            a_vertex[v] = v_temp;
+        }
+
+
+        // create the hexagon shape
+        Mesh::Halfedge_around_vertex_circulator h_it,h_next, h_end;
+        int valence;
+        int i;
+
+        for (auto v : mesh_.vertices()){
+
+            h_it = mesh_.halfedges(v);
+            h_end = h_it;
+
+            valence = mesh_.valence(v);
+            Mesh::Vertex hex_vertices[valence]; // don not needed to be a hexagon
+            i = 0;
+
+            do {
+                hex_vertices[i] = h_vertex[*h_it];
+                i = i + 1;
+            }
+            while (++h_it != h_end);
+
+            add_hexagon(new_mesh, hex_vertices, valence, a_vertex[v]);
+
+        }
+
+
+        Mesh::Halfedge h;
+        for(auto e : mesh_.edges()){
+
+            h = mesh_.halfedge(e, 0);
+            from_v = mesh_.from_vertex(h);
+
+            // create a star
+            if ( ! mesh_.is_boundary(from_v) and star_state[from_v] == -1 ){
+
+                Mesh::Vertex v0, v1, v2, bv0v1, bv1v0, bv1v2, bv2v1, bv2v0, bv0v2, middle; // eg: bv0v1 vertex of the hex on the halfege from v0 to v1
+                Mesh::Halfedge front_h;
+
+                v0 = from_v;
+                // iterate over halfedge
+                h_it = mesh_.halfedges(from_v);
+                h_next = h_it;
+                h_end = h_it;
+
+
+                do {
+                    ++h_next;
+
+                    v1 = mesh_.to_vertex(*h_it);
+                    v2 = mesh_.to_vertex(*h_next);
+
+                    front_h = mesh_.find_halfedge(v1, v2);
+
+                    bv0v1 = h_vertex[*h_it];
+                    bv1v0 = h_vertex[mesh_.opposite_halfedge(*h_it)];
+                    bv1v2 = h_vertex[front_h];
+                    bv2v1 = h_vertex[mesh_.opposite_halfedge(front_h)];
+                    bv0v2 = h_vertex[*h_next];
+                    bv2v0 = h_vertex[mesh_.opposite_halfedge(*h_next)];
+
+                    p_temp = center_factor * ( ((mesh_.position(v1) + mesh_.position(v2)) / 2.0 ) - mesh_.position(v0)) + mesh_.position(v0);
+                    middle = new_mesh.add_vertex( p_temp);
+
+                    add_kite(new_mesh, bv0v1, bv1v0, bv1v2, bv2v1, bv2v0, bv0v2, middle);
+
+                    star_state[v1] = 1;
+                }while( ++h_it != h_end);
+
+                star_state[v0] = 3;
+
+            }
+
+        }
+
+
+        std::cout << "#faces" << new_mesh.n_faces() << std::endl;
+        std::cout << "#vertices" << new_mesh.n_vertices() << std::endl;
+
+        mesh_ = new_mesh;
+
+
+
+    }
+
+
+
+
+
 
 // ============================================================================
 // THICKNESS

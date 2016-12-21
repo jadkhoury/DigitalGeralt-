@@ -66,8 +66,14 @@ public:
 
     void stars();
     void stars2();
+    void stars3();
+    void stars4();
     void add_spearhead(Mesh &mesh_temp, Mesh::Vertex v0, Mesh::Vertex v1, Mesh::Vertex v2);
     void add_anti_spearhead( Mesh &new_mesh,Mesh::Vertex middle, Mesh::Vertex  v1, Mesh::Vertex  v2,  Mesh::Vertex  v1r, Mesh::Vertex  v2r, Mesh::Vertex  v1cv2 );
+    void add_branch(Mesh &new_mesh,  Mesh::Vertex middle, Mesh::Vertex  v0, Mesh::Vertex  v1,  Mesh::Vertex  v1b1, Mesh::Vertex  v1b2, Mesh::Vertex v2 );
+    void add_hexagon(Mesh &new_mesh, Mesh::Vertex vertices[], int size,  Mesh::Vertex origin);
+    void add_kite(Mesh &new_mesh, Mesh::Vertex bv0v1, Mesh::Vertex bv1v0, Mesh::Vertex bv1v2,
+            Mesh::Vertex bv2v1, Mesh::Vertex bv2v0, Mesh::Vertex bv0v2, Mesh::Vertex middle);
     void give_thickness(float thickness);
 
 
