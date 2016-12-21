@@ -433,74 +433,6 @@ void MeshProcessing::tangential_relaxation() {
 // ============================================================================
 
 
-    void MeshProcessing::add_spearhead(Mesh &mesh_temp, Mesh::Vertex v0, Mesh::Vertex v1, Mesh::Vertex v2)
-    {
-
-        Mesh::Vertex middle;
-
-        Point p_middle = (mesh_temp.position(v0) + mesh_temp.position(v1) + mesh_temp.position(v2) ) / 3.0;
-        middle = mesh_temp.add_vertex(p_middle);
-
-        mesh_.add_triangle(middle, v0, v1);
-        mesh_temp.add_triangle(middle, v2, v0);
-
-
-
-    }
-
-    void MeshProcessing::stars() {
-
-        Mesh new_mesh; // we create a new mesh and replace the old one at the end
-        Mesh::Vertex center, ext0, ext1, middle, start, temp;
-
-        Mesh::Vertex_around_vertex_circulator vc, vc_next, vc_end;
-
-        Mesh::Vertex_property <bool> is_stared =
-                mesh_.vertex_property<bool>("v:is_started", false);
-
-
-        // iterate over all vertices
-        for (auto v_it : mesh_.vertices()) {
-
-            // create a star with this point as center if not already in a star or is at boundary
-            if (!mesh_.is_boundary(v_it) and ! is_stared[v_it]) {
-
-                vc = mesh_.vertices(v_it);
-                vc_next = vc;
-                vc_end = vc;
-
-                center = new_mesh.add_vertex( mesh_.position(v_it));
-
-                start = new_mesh.add_vertex( mesh_.position(*vc) ); // init use in the last circulation
-                ext0 = start; // init use in the first circulation
-                do {
-                    ++vc_next; // always one step forward
-                    // we always create the vertex in the vertex for vc_next, just for the last circulation the vertex is already created (start)
-                    if (vc_next == vc_end ){
-                        ext1 = start;
-                    }else {
-                        ext1 = new_mesh.add_vertex( mesh_.position(*vc_next) );
-                    }
-
-                    add_spearhead(new_mesh, center, ext0, ext1);
-
-                    is_stared[*vc] = true;
-                    ext0 = ext1;
-                }while( ++vc != vc_end);
-
-                is_stared[v_it];
-            }
-
-
-        }
-
-        std::cout << "#faces" << new_mesh.n_faces() << std::endl;
-        std::cout << "#vertices" << new_mesh.n_vertices() << std::endl;
-
-        mesh_ = new_mesh;
-
-    }
-
 
     void MeshProcessing::add_anti_spearhead(Mesh &new_mesh,  Mesh::Vertex middle, Mesh::Vertex  v1, Mesh::Vertex  v2,  Mesh::Vertex  v1r, Mesh::Vertex  v2r, Mesh::Vertex  v1cv2 )
     {
@@ -518,7 +450,7 @@ void MeshProcessing::tangential_relaxation() {
     }
 
 
-    void MeshProcessing::stars2() {
+    void MeshProcessing::stars() {
 
         mesh_.triangulate();
 
@@ -678,149 +610,6 @@ void MeshProcessing::tangential_relaxation() {
 
 
 
-    void MeshProcessing::add_branch(Mesh &new_mesh,  Mesh::Vertex middle, Mesh::Vertex  v0, Mesh::Vertex  v1,  Mesh::Vertex  v1b1, Mesh::Vertex  v1b2, Mesh::Vertex v2 )
-    {
-        Mesh::Face face_temp;
-
-        face_temp = new_mesh.add_triangle(v0, v1, middle);
-        face_temp = new_mesh.add_triangle(v1, v1b1, middle);
-        face_temp = new_mesh.add_triangle(v1b2, v2, middle);
-        face_temp = new_mesh.add_triangle(v2, v0, middle );
-
-
-    }
-
-    void MeshProcessing::stars4() {
-
-        mesh_.triangulate();
-
-        Mesh::Vertex_property <surface_mesh::Surface_mesh::Vertex> a_vertex =
-                mesh_.vertex_property<surface_mesh::Surface_mesh::Vertex>("v:a_vertex");
-
-
-        Mesh::Edge_property <surface_mesh::Surface_mesh::Vertex> e0_vertex =
-                mesh_.edge_property<surface_mesh::Surface_mesh::Vertex>("e:a0_vertex");
-
-        Mesh::Edge_property <surface_mesh::Surface_mesh::Vertex> e1_vertex =
-                mesh_.edge_property<surface_mesh::Surface_mesh::Vertex>("e:a1_vertex");
-
-        Mesh::Edge_property <surface_mesh::Surface_mesh::Vertex> e2_vertex =
-                mesh_.edge_property<surface_mesh::Surface_mesh::Vertex>("e:a2_vertex");
-
-
-
-        // star_state = 3: center of a star; star_state = 1: branche of a star; star_stat = -1: not used
-        Mesh::Vertex_property<int> star_state =
-                mesh_.vertex_property<int>("v:star_state", -1);
-
-        // star_state = 3: center of a star; star_state = 1: branche of a star; star_stat = -1: not used
-        Mesh::Edge_property<int> edge_star_state =
-                mesh_.edge_property<int>("e:edge_star_state", -1);
-
-
-        Mesh new_mesh; // we create a new mesh and replace the old one at the end
-        Point p_temp, p0,p1,p2, start;
-        Mesh::Vertex primary_origin, v_temp;
-        Mesh::Vertex primary_vertices[3];
-
-        Mesh::Vertex_around_vertex_circulator vc, vc_next, vc_end;
-        Mesh::Vertex_around_face_circulator fc, fc_end;
-
-
-        Mesh::Edge_iterator e_it, e_begin, e_end;
-        e_begin = mesh_.edges_begin();
-        e_end = mesh_.edges_end();
-        Mesh::Edge e_temp ;
-
-        double  border_factor = 0.05;
-        double center_factor = 0.5;
-
-
-        // determine the star_state and create only once the needed vertices
-        first = true;
-        for (auto current_v : mesh_.vertices()) {
-
-            primary_origin = current_v;
-
-
-            if (!mesh_.is_boundary(primary_origin) and  star_state[primary_origin] == -1 and first) {
-
-                vc = mesh_.vertices(primary_origin);
-                vc_next = vc;
-                vc_end = vc;
-
-                do {
-                    ++vc_next;
-
-                    if (star_state[*vc] == -1) {
-                        v_temp = new_mesh.add_vertex(mesh_.position(*vc));
-                        a_vertex[*vc] = v_temp;
-                        star_state[*vc] = 1;
-                    }
-
-                    // attach the 2 vertices
-                    e_temp = mesh_.find_edge(*vc, *vc_next);
-                    if(edge_star_state[e_temp] == -1) {
-                        p_temp = (mesh_.position(*vc_next) - mesh_.position(*vc)  );
-                        e0_vertex[e_temp] = new_mesh.add_vertex( p_temp * border_factor + mesh_.position(*vc));
-                        e2_vertex[e_temp] = new_mesh.add_vertex( p_temp * (1 - border_factor ) + mesh_.position(*vc));
-                        edge_star_state[e_temp] = 1;
-                    }
-
-
-                }while( ++vc != vc_end);
-
-                // do not create primary origin in new mesh other wise big trouble
-                v_temp = new_mesh.add_vertex(mesh_.position(primary_origin));
-                a_vertex[primary_origin] = v_temp;
-                star_state[primary_origin] = 3;
-            }
-
-
-
-        }
-
-
-
-        Mesh::Vertex middle, v0, v1, v1b1, v1b2, v2;
-
-        for (auto current_v: mesh_.vertices() ) {
-
-            primary_origin = current_v;
-
-            if ( star_state[primary_origin] == 3 ) {
-
-                vc = mesh_.vertices(primary_origin);
-                vc_next = vc;
-                vc_end = vc;
-
-                do {
-                    ++vc_next;
-                    v0 = a_vertex[primary_origin];
-                    v1 = a_vertex[*vc];
-                    v2 = a_vertex[*vc_next];
-                    v1b1 = e0_vertex[mesh_.find_edge(*vc, *vc_next)];
-                    v1b2 = e2_vertex[mesh_.find_edge(*vc, *vc_next)];
-                    // this is the only one we create here
-                    p_temp = center_factor * ( ((new_mesh.position(v1) + new_mesh.position(v2)) / 2.0 ) - mesh_.position(primary_origin)) + mesh_.position(primary_origin);
-                    middle = new_mesh.add_vertex( p_temp);
-
-                    add_branch( new_mesh , middle, v0, v1, v1b1, v1b2, v2 );
-
-                }while( ++vc != vc_end);
-            }
-        }
-
-
-        std::cout << "#faces" << new_mesh.n_faces() << std::endl;
-        std::cout << "#vertices" << new_mesh.n_vertices() << std::endl;
-
-        mesh_ = new_mesh;
-
-
-
-    }
-
 
     void MeshProcessing::add_hexagon(Mesh &new_mesh, Mesh::Vertex vertices[], int size, Mesh::Vertex origin)
     {
@@ -857,9 +646,15 @@ void MeshProcessing::tangential_relaxation() {
 
 
 
-    void MeshProcessing::stars3() {
+    void MeshProcessing::flowers() {
 
-        mesh_.triangulate();
+        // inti factor
+        double  border_factor = 0.03;
+        double center_factor = 0.43;
+
+
+
+        mesh_.triangulate(); // make shure we are in a triangle mesh
 
         Mesh::Vertex_property <surface_mesh::Surface_mesh::Vertex> a_vertex =
                 mesh_.vertex_property<surface_mesh::Surface_mesh::Vertex>("v:a_vertex");
@@ -869,33 +664,16 @@ void MeshProcessing::tangential_relaxation() {
                 mesh_.halfedge_property<surface_mesh::Surface_mesh::Vertex>("h:a_vertex");
 
 
-
         // star_state = 3: center of a star; star_state = 1: branche of a star; star_stat = -1: not used
         Mesh::Vertex_property<int> star_state =
                 mesh_.vertex_property<int>("v:star_state", -1);
 
-        // star_state = 3: center of a star; star_state = 1: branche of a star; star_stat = -1: not used
-        Mesh::Halfedge_property<int> halfedge_hex =
-                mesh_.halfedge_property<int>("h:halfedge_hex", -1);
 
 
         Mesh new_mesh; // we create a new mesh and replace the old one at the end
-        Point p_temp, p0,p1,p2, start;
-        Mesh::Vertex primary_origin, v_temp;
-        Mesh::Vertex primary_vertices[3];
 
-        Mesh::Vertex_around_vertex_circulator vc, vc_next, vc_end;
-        Mesh::Vertex_around_face_circulator fc, fc_end;
-
-
-        Mesh::Edge_iterator e_it, e_begin, e_end;
-        e_begin = mesh_.edges_begin();
-        e_end = mesh_.edges_end();
-        Mesh::Edge e_temp ;
-
-        double  border_factor = 0.03;
-        double center_factor = 0.43;
-
+        Point p_temp ;
+        Mesh::Vertex  v_temp;
         Mesh::Vertex from_v, to_v, new_v;
 
         // create the needed vertex for the "hexagon" of each vertex
@@ -938,6 +716,7 @@ void MeshProcessing::tangential_relaxation() {
         }
 
 
+        // iterate linearly over all edge and create a flower if it is possible
         Mesh::Halfedge h;
         for(auto e : mesh_.edges()){
 
@@ -981,11 +760,10 @@ void MeshProcessing::tangential_relaxation() {
                 }while( ++h_it != h_end);
 
                 star_state[v0] = 3;
-
             }
-
         }
 
+        // TO DO: remove unnused hexagon
 
         std::cout << "#faces" << new_mesh.n_faces() << std::endl;
         std::cout << "#vertices" << new_mesh.n_vertices() << std::endl;
