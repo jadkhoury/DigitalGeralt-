@@ -522,6 +522,8 @@ void MeshProcessing::tangential_relaxation() {
 
     void MeshProcessing::stars2() {
 
+        mesh_.triangulate();
+
         Mesh::Vertex_property <surface_mesh::Surface_mesh::Vertex> a_vertex =
                 mesh_.vertex_property<surface_mesh::Surface_mesh::Vertex>("v:a_vertex");
 
@@ -553,8 +555,8 @@ void MeshProcessing::tangential_relaxation() {
         e_end = mesh_.edges_end();
         Mesh::Edge e_temp ;
 
-        double  reduce_factor = 0.9;
-        double center_factor = 0.1;
+        double  reduce_factor = 0.96;
+        double center_factor = 0.3;
 
 
         // determine the star_state and create only once the needed vector
@@ -658,7 +660,7 @@ void MeshProcessing::tangential_relaxation() {
             }while( ++fc != fc_end);
 
             if (is_hole){
-                new_mesh.add_triangle(    a_vertex[primary_vertices[0]] ,a_vertex[primary_vertices[1]], a_vertex[primary_vertices[2]]);
+                new_mesh.add_triangle( a_vertex[primary_vertices[0]] ,a_vertex[primary_vertices[1]], a_vertex[primary_vertices[2]]);
             }
 
 
