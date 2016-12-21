@@ -96,7 +96,7 @@ void MeshProcessing::calc_target_length(const REMESHING_TYPE &remeshing_type) {
         }
 #define FACTOR
 #ifdef FACTOR
-        float factor = 3.0;
+        float factor = 2.0;
         for (auto v:mesh_.vertices()) {
             target_length[v] *= factor;
         }
@@ -848,8 +848,8 @@ void MeshProcessing::tangential_relaxation() {
         face_temp = new_mesh.add_triangle(bv0v1, bv1v0, middle);
         face_temp = new_mesh.add_triangle(bv1v0, bv1v2, middle);
 
-        face_temp = new_mesh.add_triangle(bv0v2, middle, bv2v1);
-        face_temp = new_mesh.add_triangle(bv2v1, bv2v0, bv0v2);
+      //  face_temp = new_mesh.add_triangle(bv0v2, middle, bv2v0);
+     //   face_temp = new_mesh.add_triangle(middle, bv2v1, bv2v0);
 
         face_temp = new_mesh.add_triangle(bv0v1, middle, bv0v2);
 
@@ -895,8 +895,8 @@ void MeshProcessing::tangential_relaxation() {
         e_end = mesh_.edges_end();
         Mesh::Edge e_temp ;
 
-        double  border_factor = 0.05;
-        double center_factor = 0.5;
+        double  border_factor = 0.03;
+        double center_factor = 0.43;
 
         Mesh::Vertex from_v, to_v, new_v;
 
