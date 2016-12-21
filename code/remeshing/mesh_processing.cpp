@@ -83,8 +83,8 @@ void MeshProcessing::calc_target_length(const REMESHING_TYPE &remeshing_type) {
 
     //We comppute the mean and define the max and min length in function of the mean
     mean_length = length / mesh_.n_edges();
-    float max_length = 50.0 * mean_length;
-    float min_length =  mean_length;
+    float max_length = 2.0 * mean_length;
+    float min_length = 0.1 * mean_length;
 
 
     if (remeshing_type == AVERAGE) {
@@ -160,7 +160,7 @@ void MeshProcessing::calc_target_length(const REMESHING_TYPE &remeshing_type) {
 
         }
 
-    } else if (remeshing_type == HEIGHT) {
+    } else if (remeshing_type == DIRECTIONAL) {
         float max_h = 0.0;
         float min_h = 999999999.9;
         float current_h, normalized_h;
@@ -180,6 +180,8 @@ void MeshProcessing::calc_target_length(const REMESHING_TYPE &remeshing_type) {
         }
     }
 }
+
+
 
 void MeshProcessing::split_long_edges() {
     Mesh::Vertex_property <Point> normals = mesh_.vertex_property<Point>("v:normal");
@@ -708,6 +710,7 @@ void MeshProcessing::tangential_relaxation() {
                 hex_vertices[i] = h_vertex[*h_it];
                 i = i + 1;
             }
+
             while (++h_it != h_end);
 
             add_hexagon(new_mesh, hex_vertices, valence, a_vertex[v]);
