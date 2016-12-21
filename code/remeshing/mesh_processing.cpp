@@ -701,7 +701,7 @@ void MeshProcessing::tangential_relaxation() {
             h_end = h_it;
 
             valence = mesh_.valence(v);
-            Mesh::Vertex hex_vertices[valence]; // don not needed to be a hexagon
+            Mesh::Vertex *hex_vertices = new Mesh::Vertex[valence]; // don not needed to be a hexagon
             i = 0;
 
             do {
@@ -711,6 +711,7 @@ void MeshProcessing::tangential_relaxation() {
             while (++h_it != h_end);
 
             add_hexagon(new_mesh, hex_vertices, valence, a_vertex[v]);
+            delete [] hex_vertices;
 
         }
 
