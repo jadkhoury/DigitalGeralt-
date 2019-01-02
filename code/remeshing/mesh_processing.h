@@ -23,7 +23,7 @@ namespace mesh_processing {
 
 using std::string;
 using std::vector;
-enum REMESHING_TYPE : int { AVERAGE = 0, CURV = 1, DIRECTIONAL = 2 };
+enum REMESHING_TYPE : int { AVERAGE = 0, CURV = 1, DIRECTIONAL = 2, DIRECTIONAL_QX = 3};
 
 class MeshProcessing {
 

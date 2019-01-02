@@ -25,7 +25,7 @@ using std::endl;
 using std::pair;
 using std::make_pair;
 using std::vector;
-Point direction = Point(1.0, 0.0, 0.0);
+Point direction = Point(0.0, 1.0, 0.0);
 
 
 MeshProcessing::MeshProcessing(const string &filename) {
@@ -75,16 +75,16 @@ void MeshProcessing::calc_target_length(const REMESHING_TYPE &remeshing_type) {
     Mesh::Vertex_property <Scalar> target_new_length = mesh_.vertex_property<Scalar>("v:newlength", 0);
 
 
-    // we caluclate length summing up over all edges
+    // Caluclate length summing up over all edges
     length = 0.;
     for (auto e: mesh_.edges()) {
         length = length + mesh_.edge_length(e);
     }
 
-    //We comppute the mean and define the max and min length in function of the mean
+    // Comppute the mean and define the max and min length in function of the mean
     mean_length = length / mesh_.n_edges();
-    float max_length = 2.0 * mean_length;
-    float min_length = 0.1 * mean_length;
+    float max_length = 5.0 * mean_length;
+    float min_length = mean_length;
 
 
     if (remeshing_type == AVERAGE) {
@@ -92,8 +92,8 @@ void MeshProcessing::calc_target_length(const REMESHING_TYPE &remeshing_type) {
         for (auto v: mesh_.vertices()) {
             target_length[v] = mean_length;
         }
-#define FACTOR
-#ifdef FACTOR
+#define FACTOR 0
+#if FACTOR
         float factor = 1;
         for (auto v:mesh_.vertices()) {
             target_length[v] *= factor;
@@ -120,7 +120,7 @@ void MeshProcessing::calc_target_length(const REMESHING_TYPE &remeshing_type) {
 
         for (v_it = mesh_.vertices_begin(); v_it != v_end; ++v_it) {
             temp_k = fabs(gauss_curvature[*v_it]);
-            if( temp_k < mean_k){
+            if (temp_k < mean_k){
                 temp_target_length = max_length;
             }
             else {
@@ -178,6 +178,34 @@ void MeshProcessing::calc_target_length(const REMESHING_TYPE &remeshing_type) {
             normalized_h = (current_h - min_h)/(max_h - min_h);
             target_length[v] = min_length + (max_length - min_length) * normalized_h;
         }
+    } else if (remeshing_type == DIRECTIONAL_QX) {
+        float max_h = 0.0;
+        float min_h = 999999999.9;
+        float current_h;
+        //compute the min and max height
+        for(auto v : mesh_.vertices()){
+            auto position = mesh_.position(v);
+            current_h = dot(position, direction);
+            max_h = (current_h > max_h) ? current_h : max_h;
+            min_h = (current_h < min_h) ? current_h : min_h;
+        }
+        // For quadratic curve passing through p0:(x0, y0) & p1:(x1, y1)
+        // y = axx + bx + c
+        // a = (y1-y0) / (x1-x0)^2
+        // b = -2a * x0
+        // c = y0 + a * (x0)^2
+        // ( to find this, fix p0 & p1, then fix x0 = -b/2a = min of curve)
+        static float x0 = min_h, x1 = max_h;
+        static float y0 = min_length, y1 = max_length;
+        static float a = (y1-y0) / ((x1-x0)*(x1-x0));
+        static float b = -2.0 * a * x0;
+        static float c = y0 + a * x0 * x0;
+        for (auto v: mesh_.vertices()){
+            auto position = mesh_.position(v);
+            current_h = dot(position, direction);
+            float& x = current_h;
+            target_length[v] = a*x*x + b*x + c;
+        }
     }
 }
 
@@ -217,7 +245,7 @@ void MeshProcessing::split_long_edges() {
                 ctr++;
             }
         }
-        cout << "we split " << ctr << " edges" << endl;
+        cout << "Split " << ctr << " edges" << endl;
     }
 }
 
@@ -295,8 +323,7 @@ void MeshProcessing::collapse_short_edges() {
             }
 
         }
-        cout << "we collapse " << ctr << " edges" << endl;
-
+        cout << "Collapsed " << ctr << " edges" << endl;
     }
     mesh_.garbage_collection();
     if (i == 100) std::cerr << "collapse break\n";
@@ -384,7 +411,7 @@ void MeshProcessing::equalize_valences() {
                 }
             }
         }
-        cout << "we equalize " << counter << " vertices" << endl;
+        cout << "Equalized " << counter << " vertices" << endl;
     }
     if (i == 100) std::cerr << "flip break\n";
 }
@@ -424,7 +451,7 @@ void MeshProcessing::tangential_relaxation() {
         for (auto v: mesh_.vertices())
             if (!mesh_.is_boundary(v))
                 mesh_.position(v) += update[v];
-        cout << "finished tangential relaxation" << endl;
+        cout << "Finished tangential relaxation" << endl;
     }
 }
 
@@ -446,9 +473,6 @@ void MeshProcessing::tangential_relaxation() {
         face_temp = new_mesh.add_triangle(middle, v1cv2, v2r);
         face_temp = new_mesh.add_triangle(v1r, v1, v1cv2);
         face_temp = new_mesh.add_triangle(v2r, v1cv2, v2);
-
-
-
     }
 
 

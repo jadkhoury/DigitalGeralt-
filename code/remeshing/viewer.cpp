@@ -379,7 +379,7 @@ Viewer::Viewer() : nanogui::Screen(Eigen::Vector2i(1024, 768), "DGP Viewer") {
     new Label(window_, "Remeshing", "sans-bold");
 
 
-    vector<string> remeshing_type = {"Average", "Curvature", "Directional"};
+    vector<string> remeshing_type = {"Average", "Curvature", "Directional", "Dir Quadtratic"};
     ComboBox *c = new ComboBox(window_, remeshing_type);
     c->setCallback([this](int remeshing_type) {
         this->remeshing_type = static_cast<mesh_processing::REMESHING_TYPE>
